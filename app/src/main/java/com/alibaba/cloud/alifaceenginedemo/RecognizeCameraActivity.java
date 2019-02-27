@@ -1,0 +1,506 @@
+package com.alibaba.cloud.alifaceenginedemo;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.ImageFormat;
+import android.hardware.Camera;
+import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
+import android.util.Log;
+import android.view.OrientationEventListener;
+import android.view.Surface;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
+
+import com.alibaba.cloud.faceengine.Codec;
+import com.alibaba.cloud.faceengine.DetectParameter;
+import com.alibaba.cloud.faceengine.Face;
+import com.alibaba.cloud.faceengine.FaceDetect;
+import com.alibaba.cloud.faceengine.FaceRecognize;
+import com.alibaba.cloud.faceengine.FaceRegister;
+import com.alibaba.cloud.faceengine.Group;
+import com.alibaba.cloud.faceengine.Image;
+import com.alibaba.cloud.faceengine.ImageRotation;
+import com.alibaba.cloud.faceengine.Mode;
+import com.alibaba.cloud.faceengine.RecognizeResult;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+public class RecognizeCameraActivity extends Activity implements SurfaceHolder.Callback, Camera.PreviewCallback {
+    private SurfaceView mSurfaceView;
+    private Spinner mGroupSpinner;
+    private TextView mTitle;
+    private SurfaceHolder mSurfaceHolder;
+    private Camera mCamera;
+    private int mCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
+    private int mRotation = 0;
+
+    private Group[] mAllGroups;
+    private String[] mAllGroupNames;
+
+    private FaceDetect mFaceDetect;
+    private DetectParameter mDetectParameter;
+    private FaceRegister mFaceRegister;
+    private FaceRecognize mFaceRecognize;
+    private FaceRecognize.RecognizeVideoListener mRecognizeVideoListener;
+    private RecognizeResult[] mRecognizeResults;
+
+    private FaceFrameView[] mFaceViews;
+    private FrameLayout mFrame;
+    private int mFrameWidth, mFrameHeight;
+
+    private String TAG;
+    private LinearLayout zcLv, spLv;
+    private ImageButton mBtnBack, mBtnSwichCamera;
+    private OrientationEventListener mOrientationEventListener;
+
+    private Button mBtnForRegisterForRegister;
+    private Bitmap mBitmapForRegister;
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_recognizecamera);
+        init();
+        initData();
+        initView();
+    }
+
+    private void initView() {
+        mTitle.setText(R.string.recognize_camera);
+        if (TAG.equals(RegisterCameraActivity.RegisteredCameraTAG)) {
+            mTitle.setText(R.string.register_camera);
+            spLv.setVisibility(View.GONE);
+            zcLv.setVisibility(View.VISIBLE);
+        }
+        mSurfaceHolder = mSurfaceView.getHolder();
+        mSurfaceHolder.setFixedSize(1280, 720);
+        mSurfaceHolder.addCallback(this);
+        mSurfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+
+        if (mAllGroupNames != null) {
+            ArrayAdapter<String> adapter = new ArrayAdapter<String>(RecognizeCameraActivity.this, R.layout.support_simple_spinner_dropdown_item, mAllGroupNames);
+            mGroupSpinner.setAdapter(adapter);
+            mGroupSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    Log.d(TAG, "setGroupId postion:" + position + " groupId:" + mAllGroups[position].id);
+                    mFaceRecognize.setGroupId(mAllGroups[position].id);
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+                    mFaceRecognize.setGroupId("");
+                }
+            });
+            mFaceRecognize.setGroupId(mAllGroups[mGroupSpinner.getSelectedItemPosition()].id);
+        }
+
+        mRecognizeVideoListener = new FaceRecognize.RecognizeVideoListener() {
+            @Override
+            public void onRecognized(Image image, RecognizeResult[] results) {
+                mRecognizeResults = results;
+            }
+        };
+
+        mBtnForRegisterForRegister.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                File file = new File(Utils.filePath + "linshi.jpg");
+                try {
+                    FileOutputStream out = new FileOutputStream(file);
+                    mBitmapForRegister.compress(Bitmap.CompressFormat.JPEG, 90, out);
+                    out.flush();
+                    out.close();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                Intent intent = new Intent();
+                intent.putExtra("data", file.toString());
+                setResult(RESULT_OK, intent);
+
+                finish();
+            }
+        });
+        mBtnSwichCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mCameraId == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+                    mCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
+                    openCamera(mSurfaceHolder, mCameraId);
+                } else if (mCameraId == Camera.CameraInfo.CAMERA_FACING_BACK) {
+                    mCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
+                    openCamera(mSurfaceHolder, mCameraId);
+                }
+                if (mFaceViews != null) {
+                    for (int j = 0; j < mFaceViews.length; j++) {
+                        mFrame.removeView(mFaceViews[j]);
+                    }
+                }
+            }
+        });
+        mBtnBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                RecognizeCameraActivity.this.finish();
+            }
+        });
+    }
+
+    private void initData() {
+        TAG = getIntent().getStringExtra("TAG");
+        int mode = SPUtils.getRunMode(this);
+
+        mFaceRegister = FaceRegister.createInstance();
+        if (mode == Mode.CLOUD) {
+            mFaceRecognize = FaceRecognize.createInstance(Mode.CLOUD);
+        } else {
+            mFaceRecognize = FaceRecognize.createInstance(Mode.TERMINAL);
+        }
+
+        mFaceDetect = FaceDetect.createInstance(Mode.TERMINAL);
+        mDetectParameter = mFaceDetect.getVideoParameter();
+        mDetectParameter.checkLiveness = 0;
+        mDetectParameter.checkQuality = 0;
+        mDetectParameter.checkExpression = 0;
+        mDetectParameter.checkGender = 0;
+        mDetectParameter.checkAge = 0;
+        mDetectParameter.checkGlass = 0;
+        mFaceDetect.setVideoParameter(mDetectParameter);
+
+        mAllGroups = mFaceRegister.getAllGroups();
+        if (mAllGroups != null) {
+            mAllGroupNames = new String[mAllGroups.length];
+            for (int i = 0; i < mAllGroups.length; i++) {
+                mAllGroupNames[i] = mAllGroups[i].name;
+            }
+        }
+    }
+
+    private void init() {
+        mSurfaceView = (SurfaceView) findViewById(R.id.activity_recognizecamera_sv);
+        mGroupSpinner = (Spinner) findViewById(R.id.activity_recognizecamera_sp);
+        mTitle = (TextView) findViewById(R.id.currency_tv_title);
+        mFrame = (FrameLayout) findViewById(R.id.activity_recognizecamera_frame);
+        zcLv = (LinearLayout) findViewById(R.id.zcopencamera_lv);
+        mBtnForRegisterForRegister = (Button) findViewById(R.id.zcopencamera_btn);
+        spLv = (LinearLayout) findViewById(R.id.activity_recognizecamera_lv);
+        mBtnBack = (ImageButton) findViewById(R.id.currency_btn_back);
+        mBtnSwichCamera = (ImageButton) findViewById(R.id.activity_recognizecamera_ib);
+    }
+
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        openCamera(holder, mCameraId);
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+
+    }
+
+    @Override
+    public void onPreviewFrame(byte[] data, Camera camera) {
+        if (mFaceViews != null) {
+            for (int j = 0; j < mFaceViews.length; j++) {
+                mFrame.removeView(mFaceViews[j]);
+            }
+        }
+        Image image = new Image();
+        image.data = data;
+        image.format = com.alibaba.cloud.faceengine.ImageFormat.NV21;
+        image.width = 1280;
+        image.height = 720;
+        image.rotation = ImageRotation.ANGLE_0;
+
+        if (mRotation == 270) {
+            Codec.nv21Rotate270InPlace(image.data, image.width, image.height);
+            int width = image.width;
+            image.width = image.height;
+            image.height = width;
+        } else if (mRotation == 180) {
+            Codec.nv21Rotate180InPlace(image.data, image.width, image.height);
+        } else if (mRotation == 90) {
+            Codec.nv21Rotate90InPlace(image.data, image.width, image.height);
+            int width = image.width;
+            image.width = image.height;
+            image.height = width;
+        }
+
+        Face[] faces = mFaceDetect.detectVideo(image);
+        if (faces != null) {
+            for (int i = 0; i < faces.length; i++) {
+                Log.d(TAG, "detectVideo faces[" + i + "]:" + faces[i]);
+            }
+        }
+        if (TAG.equals(RegisterCameraActivity.RegisteredCameraTAG)) {
+            if (faces == null) {
+                mBtnForRegisterForRegister.setEnabled(false);
+                mBtnForRegisterForRegister.setTextColor(ContextCompat.getColor(RecognizeCameraActivity.this, R.color.textColorN));
+                mBtnForRegisterForRegister.setText(R.string.no_detected);
+            } else {
+                mBtnForRegisterForRegister.setEnabled(true);
+                mBtnForRegisterForRegister.setTextColor(Color.BLACK);
+                mBtnForRegisterForRegister.setText(R.string.select_face);
+            }
+        }
+        mFaceRecognize.setRecognizeVideoListener(mRecognizeVideoListener);
+        //在监听中保存result全局变量 跟face[]中的trackId进行比对
+        mFaceRecognize.recognizeVideo(image, faces);
+
+        if (faces != null) {
+            mFaceViews = new FaceFrameView[faces.length];
+            for (int i = 0; i < faces.length; i++) {
+                if (mFaceViews != null) {
+                    for (int j = 0; j < mFaceViews.length; j++) {
+                        mFrame.removeView(mFaceViews[j]);
+                    }
+                }
+                drawFaces(image, faces[i], i);
+            }
+        }
+
+        if (TAG.equals(RegisterCameraActivity.RegisteredCameraTAG)) {
+            if (mBitmapForRegister == null) {
+                mBitmapForRegister = Bitmap.createBitmap(720, 1280, Bitmap.Config.ARGB_8888);
+            }
+            Utils.displayNV21ToBitmap(mBitmapForRegister, data, 720, 1280);
+        }
+    }
+
+    private void drawFaces(Image image, Face face, int i) {
+        int left = face.rect.left;
+        int top = face.rect.top;
+        int right = face.rect.right;
+        int bottom = face.rect.bottom;
+        boolean mresult = false;
+        String mText = this.getString(R.string.please_select_photo);
+        RecognizeResult result = getRecognizeResult(face.trackId);
+        if (!TAG.equals(RegisterCameraActivity.RegisteredCameraTAG)) {
+            if (result != null) {
+                if (result.similarity >= 70.0) {
+                    mresult = true;
+                } else {
+                    mresult = false;
+                }
+
+                mText = result.personName + ": " + result.similarity;
+            }
+        } else {
+            mresult = true;
+            mText = "";
+        }
+
+        if (mDetectParameter.checkLiveness == 1) {
+            mText += ",liveness: " + face.attribute.liveness.score;
+        }
+        if (mDetectParameter.checkAge == 1) {
+            mText += ",age: " + face.attribute.age;
+        }
+        if (mDetectParameter.checkGender == 1) {
+            mText += ",gender: " + face.attribute.gender;
+        }
+        if (mDetectParameter.checkExpression == 1) {
+            mText += ",expression: " + face.attribute.expression;
+        }
+        if (mDetectParameter.checkQuality == 1) {
+            mText += ",quality: " + face.attribute.quality.score;
+        }
+        if (mDetectParameter.checkGlass == 1) {
+            mText += ",glass: " + face.attribute.glass;
+        }
+
+        float mratewidth = ((float) mFrameWidth) / 720;
+        float mrateheight = ((float) mFrameHeight) / 1280;
+        mFaceViews[i] = (FaceFrameView) mAddView(top * mrateheight, left * mratewidth, bottom * mrateheight, right * mratewidth, mresult, mText);
+        ViewGroup.MarginLayoutParams params = new ViewGroup.MarginLayoutParams(mFaceViews[i].getLayoutParams());
+
+        if (mRotation == 90) {
+            if (mCameraId == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+                params.setMargins(Math.round(left * mratewidth), Math.round((image.height - bottom) * mrateheight), Math.round((image.width - right) * mratewidth), Math.round((image.height - top) * mrateheight));
+                mFaceViews[i].setRotation(180);
+            } else if (mCameraId == Camera.CameraInfo.CAMERA_FACING_BACK) {
+                params.setMargins(Math.round(left * mratewidth), Math.round(top * mrateheight), Math.round((image.width - right) * mratewidth), Math.round(bottom * mrateheight));
+            }
+
+        } else if (mRotation == 0) {
+            if (mCameraId == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+                params.setMargins(Math.round(mFrameWidth - bottom * mratewidth), Math.round(mFrameHeight - right * mrateheight), Math.round(mFrameWidth - top * mratewidth), Math.round(mFrameHeight - left * mrateheight));
+                mFaceViews[i].setRotation(90);
+            } else if (mCameraId == Camera.CameraInfo.CAMERA_FACING_BACK) {
+                params.setMargins(Math.round(mFrameWidth - bottom * mratewidth), Math.round(left * mrateheight), Math.round(mFrameWidth - top * mratewidth), Math.round(right * mrateheight));
+                mFaceViews[i].setRotation(90);
+            }
+
+        } else if (mRotation == 180) {
+            if (mCameraId == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+                params.setMargins(Math.round(top * mratewidth), Math.round(left * mrateheight), Math.round(bottom * mratewidth), Math.round(right * mrateheight));
+                mFaceViews[i].setRotation(270);
+            } else if (mCameraId == Camera.CameraInfo.CAMERA_FACING_BACK) {
+                params.setMargins(Math.round(top * mratewidth), Math.round(mFrameHeight - right * mrateheight), Math.round(bottom * mratewidth), Math.round(mFrameHeight - left * mrateheight));
+                mFaceViews[i].setRotation(270);
+            }
+
+        } else {
+            if (mCameraId == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+                params.setMargins(Math.round((image.width - right) * mratewidth), Math.round(top * mrateheight), Math.round(left * mratewidth), Math.round(bottom * mrateheight));
+            } else if (mCameraId == Camera.CameraInfo.CAMERA_FACING_BACK) {
+                params.setMargins(Math.round((image.width - right) * mratewidth), Math.round((image.height - bottom) * mrateheight), Math.round(left * mratewidth), Math.round((image.height - top) * mrateheight));
+                mFaceViews[i].setRotation(180);
+            }
+
+        }
+
+        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(params);
+        mFrame.addView(mFaceViews[i], layoutParams);
+    }
+
+    private void openCamera(SurfaceHolder holder, int cameraId) {
+        releaseCamera();
+        mCamera = Camera.open(cameraId);
+        Camera.Parameters parameters = mCamera.getParameters();
+        //设置摄像机方向
+        setCameraDisplayOrientation(this, Camera.CameraInfo.CAMERA_FACING_FRONT, mCamera);
+        //预览图像尺寸
+        Log.e(TAG, "perview-size-values:" + parameters.get("preview-size-values"));
+        Log.e(TAG, "preview-format-values:" + parameters.get("preview-format-values"));
+        parameters.setPreviewSize(1280, 720);
+        //设置图像格式
+        parameters.setPreviewFormat(ImageFormat.NV21);
+        mCamera.setParameters(parameters);
+        try {
+            mCamera.setPreviewDisplay(holder);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+        mCamera.setPreviewCallback(this);
+        mCamera.startPreview();
+        mOrientationEventListener = new OrientationEventListener(RecognizeCameraActivity.this) {
+            @Override
+            public void onOrientationChanged(int orientation) {
+                OrientationChanged(orientation);
+                mFrameWidth = mFrame.getWidth();
+                mFrameHeight = mFrame.getHeight();
+            }
+        };
+        mOrientationEventListener.enable();
+    }
+
+    private synchronized void releaseCamera() {
+        if (mCamera != null) {
+            try {
+                mCamera.setPreviewCallback(null);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                mCamera.stopPreview();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            try {
+                mCamera.release();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            mCamera = null;
+        }
+    }
+
+    private void setCameraDisplayOrientation(Activity activity, int cameraId, Camera camera) {
+        Camera.CameraInfo info = new Camera.CameraInfo();
+        Camera.getCameraInfo(cameraId, info);
+        int rotation = activity.getWindowManager().getDefaultDisplay()
+                .getRotation();
+        int degrees = 0;
+        switch (rotation) {
+            case Surface.ROTATION_0:
+                degrees = 0;
+                break;
+            case Surface.ROTATION_90:
+                degrees = 90;
+                break;
+            case Surface.ROTATION_180:
+                degrees = 180;
+                break;
+            case Surface.ROTATION_270:
+                degrees = 270;
+                break;
+        }
+        int displayDegree;
+        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+            displayDegree = (info.orientation + degrees) % 360;
+            displayDegree = (360 - displayDegree) % 360;  // compensate the mirror
+        } else {
+            displayDegree = (info.orientation - degrees + 360) % 360;
+        }
+        mCamera.setDisplayOrientation(displayDegree);
+    }
+
+    RecognizeResult getRecognizeResult(int trackId) {
+        if (mRecognizeResults == null) {
+            return null;
+        }
+        for (int i = 0; i < mRecognizeResults.length; i++) {
+            if (mRecognizeResults[i].trackId == trackId) {
+                return mRecognizeResults[i];
+            }
+        }
+        return null;
+    }
+
+    private View mAddView(float top, float left, float bottom, float right, boolean result, String text) {
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(Math.round(right - left), Math.round(bottom - top));
+        FaceFrameView view = new FaceFrameView(RecognizeCameraActivity.this, Math.round(top), Math.round(bottom), Math.round(left), Math.round(right), result, text);
+        view.setLayoutParams(lp);
+        return view;
+    }
+
+    public void OrientationChanged(int orientation) {
+        if (orientation == OrientationEventListener.ORIENTATION_UNKNOWN) return;
+        android.hardware.Camera.CameraInfo info = new android.hardware.Camera.CameraInfo();
+        android.hardware.Camera.getCameraInfo(mCameraId, info);
+        // Round device orientation to a multiple of 90
+        orientation = (orientation + 45) / 90 * 90;
+        // Reverse device orientation for front-facing cameras
+        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+            mRotation = (info.orientation - orientation + 360) % 360;
+        } else {  // back-facing camera
+            mRotation = (info.orientation + orientation) % 360;
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mOrientationEventListener.disable();
+        releaseCamera();
+        FaceRecognize.deleteInstance(mFaceRecognize);
+        FaceRegister.deleteInstance(mFaceRegister);
+        FaceDetect.deleteInstance(mFaceDetect);
+    }
+}

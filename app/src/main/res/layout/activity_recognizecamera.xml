@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <include
+        layout="@layout/currency_title"></include>
+    <FrameLayout
+        android:id="@+id/activity_recognizecamera_frame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    <SurfaceView
+        android:id="@+id/activity_recognizecamera_sv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:id="@+id/activity_recognizecamera_lv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="15dp">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/group_name"
+                android:textSize="20sp"/>
+        <Spinner
+            android:id="@+id/activity_recognizecamera_sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"></Spinner>
+
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/zcopencamera_lv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:orientation="horizontal"
+            android:padding="15dp"
+            android:gravity="center"
+            android:layout_alignParentBottom="true">
+            <Button
+                android:id="@+id/zcopencamera_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="选择该人脸"
+                android:textSize="20sp"/>
+
+        </LinearLayout>
+        <ImageButton
+            android:id="@+id/activity_recognizecamera_ib"
+            android:layout_width="60dp"
+            android:layout_height="50dp"
+            android:background="@drawable/convertcamera"
+            android:layout_margin="20dp"
+            android:layout_alignParentRight="true"/>
+    </RelativeLayout>
+
+    </FrameLayout>
+</LinearLayout>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <include
+        layout="@layout/currency_title"></include>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/activity_verifycamera_frame">
+        <SurfaceView
+            android:id="@+id/activity_verifycamera_sv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <com.alibaba.cloud.alifaceenginedemo.FaceFrameView
+            android:id="@+id/activity_verifycamera_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <ImageView
+                android:id="@+id/activity_verifycamera_iv"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_margin="20dp"
+                android:src="@drawable/photo_back"/>
+            <ImageButton
+                android:id="@+id/activity_verifycamera_ib"
+                android:layout_width="60dp"
+                android:layout_height="50dp"
+                android:background="@drawable/convertcamera"
+                android:layout_margin="20dp"
+                android:layout_alignParentRight="true"/>
+        </RelativeLayout>
+
+
+    </FrameLayout>
+</LinearLayout>
