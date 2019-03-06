@@ -18,8 +18,6 @@ public class AliFaceEngineJNI {
 
     public static native void setPersistencePath(String path);
 
-    public static native void setThreadNum(int num);
-
     static {
         System.loadLibrary("AliFaceEngineJNI");
     }

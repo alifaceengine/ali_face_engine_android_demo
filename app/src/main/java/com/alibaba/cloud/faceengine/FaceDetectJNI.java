@@ -19,8 +19,6 @@ public class FaceDetectJNI {
 
     public static native DetectParameter getVideoParameter(long context);
 
-    public static native int setDetectVideoType(long context, int type);
-
     public static native Face[] detectVideo(long context, Image image);
 
     static {

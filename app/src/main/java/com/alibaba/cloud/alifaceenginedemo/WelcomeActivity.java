@@ -46,11 +46,10 @@ public class WelcomeActivity extends Activity implements View.OnClickListener {
     private void Initialization() {
         filePath = Utils.filePath;
         Log.d(TAG, "FaceEngine.getVersion:" + FaceEngine.getVersion());
-        FaceEngine.enableDebug(false);
+        FaceEngine.enableDebug(true);
         if (isFile(filePath)) {
             FaceEngine.setPersistencePath(filePath);
         }
-        FaceEngine.setThreadNum(4);
 
         boolean useCloud = (Boolean) SPUtils.get(this, SPUtils.KEY_USE_CLOUD, SPUtils.DEFAULT_VALUE_USE_CLOUD);
         if (useCloud) {

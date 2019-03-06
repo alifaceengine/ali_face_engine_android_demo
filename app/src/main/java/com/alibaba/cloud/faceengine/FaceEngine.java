@@ -33,8 +33,4 @@ public class FaceEngine {
         AliFaceEngineJNI.setPersistencePath(path);
     }
 
-    public static void setThreadNum(int num) {
-        AliFaceEngineJNI.setThreadNum(num);
-    }
-
 }

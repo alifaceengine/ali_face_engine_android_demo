@@ -46,10 +46,6 @@ public class FaceDetect {
         return FaceDetectJNI.getVideoParameter(mContext);
     }
 
-    public int setDetectVideoType(int type) {
-        return FaceDetectJNI.setDetectVideoType(mContext, type);
-    }
-
     public Face[] detectVideo(Image image) {
         return FaceDetectJNI.detectVideo(mContext, image);
     }
