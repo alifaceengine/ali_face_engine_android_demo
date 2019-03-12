@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
+import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Bundle;
@@ -36,6 +37,7 @@ import com.alibaba.cloud.faceengine.ImageRotation;
 import com.alibaba.cloud.faceengine.Mode;
 import com.alibaba.cloud.faceengine.VerifyResult;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class VerifyCameraActivity extends Activity implements SurfaceHolder.Callback, Camera.PreviewCallback {
@@ -387,23 +389,46 @@ public class VerifyCameraActivity extends Activity implements SurfaceHolder.Call
         super.onActivityResult(requestCode, resultCode, data);
         if (ALBUM_OK == requestCode) {
             if (data != null) {
-                ContentResolver cr = this.getContentResolver();
                 Uri uri = data.getData();
-                String path = Utils.getFilePathByUri(VerifyCameraActivity.this, uri);
-                registerPicture(path);
+                registerPicture(uri);
             }
         }
     }
 
-    private void registerPicture(String path) {
+    private void registerPicture(Uri uri) {
+        String path = Utils.getFilePathByUri(VerifyCameraActivity.this, uri);
         Log.d(TAG, "registerPicture path:" + path);
+        ContentResolver cr = this.getContentResolver();
+
         byte[] data = Utils.loadFile(path);
+        float degree = Utils.readPictureDegree(path);
+
+        Bitmap bitmap = null;
+        try {
+            bitmap = BitmapFactory.decodeStream(cr.openInputStream(uri));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        if (bitmap == null) {
+            Log.d(TAG, "registerPicture fail: bitmap is null");
+            return;
+        }
+
+        if (degree != 0) {
+            // 旋转图片
+            Matrix m = new Matrix();
+            m.postRotate(degree);
+            bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(),
+                    bitmap.getHeight(), m, true);
+        }
 
         Image image;
         image = new Image();
-        image.data = data;
-        image.format = com.alibaba.cloud.faceengine.ImageFormat.ImageFormat_UNKNOWN;
+        image.data = Utils.bitmap2RGB(bitmap);
+        image.format = com.alibaba.cloud.faceengine.ImageFormat.RGB888;
         image.rotation = ImageRotation.ANGLE_0;
+        image.height = bitmap.getHeight();
+        image.width = bitmap.getWidth();
         Face[] faces = mFaceDetect.detectPicture(image);
 
         if (faces == null) {
@@ -413,7 +438,6 @@ public class VerifyCameraActivity extends Activity implements SurfaceHolder.Call
             Log.d(TAG, "registerFace status: " + status);
 
             if (status == Error.OK) {
-                Bitmap bitmap = BitmapFactory.decodeFile(path);
                 mRegisteredPhotoView.setImageBitmap(bitmap);
             } else {
                 mRegisteredPhotoView.setImageBitmap(null);
