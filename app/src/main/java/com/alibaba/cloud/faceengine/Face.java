@@ -6,6 +6,7 @@ package com.alibaba.cloud.faceengine;
 
 public class Face {
     public int trackId;
+    public int confidence;
     public Rect rect;
     public Pose pose;
     public FacePoint facePoints[];
@@ -13,6 +14,6 @@ public class Face {
 
     @Override
     public String toString() {
-        return "trackId:" + trackId + " rect:" + rect + " pose:" + pose + " attribute:" + attribute;
+        return "trackId:" + trackId + " confidence:" + confidence + " rect:" + rect + " pose:" + pose + " attribute:" + attribute;
     }
 }
