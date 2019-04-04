@@ -27,10 +27,14 @@ import android.widget.TextView;
 
 import com.alibaba.cloud.faceengine.Codec;
 import com.alibaba.cloud.faceengine.DetectParameter;
+import com.alibaba.cloud.faceengine.Expression;
 import com.alibaba.cloud.faceengine.Face;
+import com.alibaba.cloud.faceengine.FaceAttributeAnalyze;
 import com.alibaba.cloud.faceengine.FaceDetect;
 import com.alibaba.cloud.faceengine.FaceRecognize;
 import com.alibaba.cloud.faceengine.FaceRegister;
+import com.alibaba.cloud.faceengine.Gender;
+import com.alibaba.cloud.faceengine.Glass;
 import com.alibaba.cloud.faceengine.Group;
 import com.alibaba.cloud.faceengine.Image;
 import com.alibaba.cloud.faceengine.ImageRotation;
@@ -43,6 +47,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 public class RecognizeCameraActivity extends Activity implements SurfaceHolder.Callback, Camera.PreviewCallback {
+    private static String TAG = "AFE_RecognizeCameraActivity";
     private SurfaceView mSurfaceView;
     private Spinner mGroupSpinner;
     private TextView mTitle;
@@ -55,17 +60,21 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
     private String[] mAllGroupNames;
 
     private FaceDetect mFaceDetect;
-    private DetectParameter mDetectParameter;
     private FaceRegister mFaceRegister;
     private FaceRecognize mFaceRecognize;
+    private FaceAttributeAnalyze mFaceAttributeAnalyze;
     private FaceRecognize.RecognizeVideoListener mRecognizeVideoListener;
     private RecognizeResult[] mRecognizeResults;
+    private long mTotalCost = 0;
+    private long mDetectCost = 0;
+    private long mRecognizeCost = 0;
+    private long mAttributeCost = 0;
 
     private FaceFrameView[] mFaceViews;
     private FrameLayout mFrame;
     private int mFrameWidth, mFrameHeight;
 
-    private String TAG;
+    private String mCaller;
     private LinearLayout zcLv, spLv;
     private ImageButton mBtnBack, mBtnSwichCamera;
     private OrientationEventListener mOrientationEventListener;
@@ -82,9 +91,24 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
         initView();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        releaseCamera();
+        FaceDetect.deleteInstance(mFaceDetect);
+        FaceRegister.deleteInstance(mFaceRegister);
+        FaceRecognize.deleteInstance(mFaceRecognize);
+        FaceAttributeAnalyze.deleteInstance(mFaceAttributeAnalyze);
+    }
+
     private void initView() {
         mTitle.setText(R.string.recognize_camera);
-        if (TAG.equals(RegisterCameraActivity.RegisteredCameraTAG)) {
+        if (mCaller.equals(RegisterCameraActivity.RegisteredCameraTAG)) {
             mTitle.setText(R.string.register_camera);
             spLv.setVisibility(View.GONE);
             zcLv.setVisibility(View.VISIBLE);
@@ -115,9 +139,16 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
         mRecognizeVideoListener = new FaceRecognize.RecognizeVideoListener() {
             @Override
             public void onRecognized(Image image, RecognizeResult[] results) {
+                Log.d(TAG, "onRecognized");
+                if (results != null) {
+                    for (int i = 0; i < results.length; i++) {
+                        Log.d(TAG, "onRecognized results[" + i + "] = " + results[i]);
+                    }
+                }
                 mRecognizeResults = results;
             }
         };
+        mFaceRecognize.setRecognizeVideoListener(mRecognizeVideoListener);
 
         mBtnForRegisterForRegister.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -167,7 +198,7 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
     }
 
     private void initData() {
-        TAG = getIntent().getStringExtra("TAG");
+        mCaller = getIntent().getStringExtra("TAG");
         int mode = SPUtils.getRunMode(this);
 
         mFaceRegister = FaceRegister.createInstance();
@@ -176,16 +207,12 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
         } else {
             mFaceRecognize = FaceRecognize.createInstance(Mode.TERMINAL);
         }
+        mFaceAttributeAnalyze = FaceAttributeAnalyze.createInstance(Mode.TERMINAL);
+        mFaceAttributeAnalyze.setFlag(FaceAttributeAnalyze.QUALITY
+                | FaceAttributeAnalyze.GENDER
+                | FaceAttributeAnalyze.AGE);
 
         mFaceDetect = FaceDetect.createInstance(Mode.TERMINAL);
-        mDetectParameter = mFaceDetect.getVideoParameter();
-        mDetectParameter.checkLiveness = 0;
-        mDetectParameter.checkQuality = 0;
-        mDetectParameter.checkExpression = 0;
-        mDetectParameter.checkGender = 0;
-        mDetectParameter.checkAge = 0;
-        mDetectParameter.checkGlass = 0;
-        mFaceDetect.setVideoParameter(mDetectParameter);
 
         mAllGroups = mFaceRegister.getAllGroups();
         if (mAllGroups != null) {
@@ -225,6 +252,9 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
 
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
+        Log.d(TAG, "onPreviewFrame");
+        long onPreviewFrameTime = System.currentTimeMillis();
+
         if (mFaceViews != null) {
             for (int j = 0; j < mFaceViews.length; j++) {
                 mFrame.removeView(mFaceViews[j]);
@@ -237,6 +267,7 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
         image.height = 720;
         image.rotation = ImageRotation.ANGLE_0;
 
+        long beginCost = System.currentTimeMillis();
         if (mRotation == 270) {
             Codec.nv21Rotate270InPlace(image.data, image.width, image.height);
             int width = image.width;
@@ -250,13 +281,23 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
             image.width = image.height;
             image.height = width;
         }
+        Log.d(TAG, "onPreviewFrame rotate image cost : " + (System.currentTimeMillis() - beginCost));
 
+        beginCost = System.currentTimeMillis();
         Face[] faces = mFaceDetect.detectVideo(image);
+        mDetectCost = System.currentTimeMillis() - beginCost;
+        Log.d(TAG, "onPreviewFrame detectVideo cost : " + mDetectCost);
+
         if (faces != null) {
+            beginCost = System.currentTimeMillis();
+            mFaceAttributeAnalyze.analyze(image, faces);
+            mAttributeCost = System.currentTimeMillis() - beginCost;
+            Log.d(TAG, "onPreviewFrame face attribute cost : " + mAttributeCost);
             for (int i = 0; i < faces.length; i++) {
                 Log.d(TAG, "detectVideo faces[" + i + "]:" + faces[i]);
             }
         }
+
         if (TAG.equals(RegisterCameraActivity.RegisteredCameraTAG)) {
             if (faces == null) {
                 mBtnForRegisterForRegister.setEnabled(false);
@@ -268,9 +309,22 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
                 mBtnForRegisterForRegister.setText(R.string.select_face);
             }
         }
-        mFaceRecognize.setRecognizeVideoListener(mRecognizeVideoListener);
+
         //在监听中保存result全局变量 跟face[]中的trackId进行比对
-        mFaceRecognize.recognizeVideo(image, faces);
+        if (faces != null && faces.length > 0) {
+            beginCost = System.currentTimeMillis();
+            mRecognizeResults = mFaceRecognize.recognizePicture(image, faces);
+            mRecognizeCost = System.currentTimeMillis() - beginCost;
+            Log.d(TAG, "recognizePicture cost : " + mRecognizeCost);
+
+            if (mRecognizeResults != null) {
+                for (int i = 0; i < mRecognizeResults.length; i++) {
+                    Log.d(TAG, "onRecognized results[" + i + "] = " + mRecognizeResults[i]);
+                }
+            }
+        }
+
+        mTotalCost = System.currentTimeMillis() - onPreviewFrameTime;
 
         if (faces != null) {
             mFaceViews = new FaceFrameView[faces.length];
@@ -315,24 +369,30 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
             mText = "";
         }
 
-        if (mDetectParameter.checkLiveness == 1) {
+        if (face.attribute.liveness.score > 0) {
             mText += ",liveness: " + face.attribute.liveness.score;
         }
-        if (mDetectParameter.checkAge == 1) {
+        if (face.attribute.age > 0) {
             mText += ",age: " + face.attribute.age;
         }
-        if (mDetectParameter.checkGender == 1) {
+        if (face.attribute.gender != Gender.GENGER_UNKNOWN) {
             mText += ",gender: " + face.attribute.gender;
         }
-        if (mDetectParameter.checkExpression == 1) {
+        if (face.attribute.expression != Expression.EXPRESSION_UNKOWN) {
             mText += ",expression: " + face.attribute.expression;
         }
-        if (mDetectParameter.checkQuality == 1) {
+        if (face.attribute.quality.score > 0) {
             mText += ",quality: " + face.attribute.quality.score;
         }
-        if (mDetectParameter.checkGlass == 1) {
+        if (face.attribute.glass != Glass.GLASS_UNKOWN) {
             mText += ",glass: " + face.attribute.glass;
         }
+        mText += ", ";
+        mText += ",Detect Cost: " + mDetectCost;
+        mText += ",Recognize Cost: " + mRecognizeCost;
+        mText += ",Attribute Cost: " + mAttributeCost;
+        mText += ",Total Cost: " + mTotalCost;
+
 
         float mratewidth = ((float) mFrameWidth) / 720;
         float mrateheight = ((float) mFrameHeight) / 1280;
@@ -498,9 +558,5 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
     protected void onDestroy() {
         super.onDestroy();
         mOrientationEventListener.disable();
-        releaseCamera();
-        FaceRecognize.deleteInstance(mFaceRecognize);
-        FaceRegister.deleteInstance(mFaceRegister);
-        FaceDetect.deleteInstance(mFaceDetect);
     }
 }

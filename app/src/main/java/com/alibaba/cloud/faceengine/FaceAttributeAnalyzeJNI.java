@@ -5,7 +5,7 @@ public class FaceAttributeAnalyzeJNI {
 
     public static native void deleteInstance(long context);
 
-    public static native void setFlag(long context, int flag);
+    public static native int setFlag(long context, int flag);
 
     public static native int getFlag(long context);
 

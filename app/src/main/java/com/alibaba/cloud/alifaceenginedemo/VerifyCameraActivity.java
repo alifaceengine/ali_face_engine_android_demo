@@ -88,6 +88,7 @@ public class VerifyCameraActivity extends Activity implements SurfaceHolder.Call
         mVerifyVideoListener = new FaceVerify.VerifyVideoListener() {
             @Override
             public void onVerified(Image image, VerifyResult[] results) {
+                Log.d(TAG, "onVerified");
                 mVerifyResults = results;
             }
         };
@@ -134,19 +135,9 @@ public class VerifyCameraActivity extends Activity implements SurfaceHolder.Call
         };
 
         mFaceDetect = FaceDetect.createInstance(Mode.TERMINAL);
-        mFaceDetect = FaceDetect.createInstance(Mode.TERMINAL);
-        DetectParameter parameter = mFaceDetect.getVideoParameter();
-        parameter.checkLiveness = 0;
-        parameter.checkQuality = 0;
-        parameter.checkExpression = 0;
-        parameter.checkGender = 0;
-        parameter.checkAge = 0;
-        parameter.checkGlass = 0;
-        mFaceDetect.setVideoParameter(parameter);
-
         mFaceVerify = FaceVerify.createInstance(Mode.TERMINAL);
         mFaceAttributeAnalyze = FaceAttributeAnalyze.createInstance(Mode.TERMINAL);
-        //mFaceAttributeAnalyze.setFlag(FaceAttributeAnalyze.AGE | FaceAttributeAnalyze.GENDER);
+        //mFaceAttributeAnalyze.setFlag(FaceAttributeAnalyze.QUALITY);
         mFaceVerify.setVerifyVideoListener(mVerifyVideoListener);
     }
 
@@ -200,13 +191,18 @@ public class VerifyCameraActivity extends Activity implements SurfaceHolder.Call
 
         Face[] faces = mFaceDetect.detectVideo(image);
         if (faces != null) {
+            Log.d(TAG, "mFaceAttributeAnalyze.analyze begin");
             mFaceAttributeAnalyze.analyze(image, faces);
+            Log.d(TAG, "mFaceAttributeAnalyze.analyze end");
             for (int i = 0; i < faces.length; i++) {
                 Log.d(TAG, "faces[" + i + "]=" + faces[i]);
             }
         }
 
-        mFaceVerify.verifyVideo(image, faces);
+        if (faces != null && faces.length > 0) {
+            Log.d(TAG, "verifyVideo begin");
+            mFaceVerify.verifyVideo(image, faces);
+        }
         drawAllFaces(image, faces);
     }
 

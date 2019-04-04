@@ -174,7 +174,9 @@ public class VerifyPhotoActivity extends Activity {
                     mImage.rotation = ImageRotation.ANGLE_0;
                     mImage.height = bitmap.getHeight();
                     mImage.width = bitmap.getWidth();
+                    Log.d(TAG, "detectPicture begin");
                     mfaces = mFaceDetect.detectPicture(mImage);
+                    Log.d(TAG, "detectPicture end");
 
                     if (mfaces != null) {
                         for (int i = 0; i < mfaces.length; i++) {

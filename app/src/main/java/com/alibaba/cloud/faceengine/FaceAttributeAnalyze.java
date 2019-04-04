@@ -34,8 +34,8 @@ public class FaceAttributeAnalyze {
         return mContext;
     }
 
-    public void setFlag(int flag) {
-        FaceAttributeAnalyzeJNI.setFlag(mContext, flag);
+    public int setFlag(int flag) {
+        return FaceAttributeAnalyzeJNI.setFlag(mContext, flag);
     }
 
     public int getFlag() {

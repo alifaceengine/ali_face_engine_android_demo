@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -38,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RecognizePhotoActivity extends Activity {
+    private static String TAG = "AFE_RecognizePhoto";
     private TextView title;
     private Spinner groupSpin;
     private Button btn;
@@ -117,7 +119,12 @@ public class RecognizePhotoActivity extends Activity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 faceRecognize.setGroupId(groupInfos[position].id);
                 if (bitmap != null) {
-                    results = faceRecognize.recognizePicture(mImage, faces);
+                    if (faces != null && faces.length > 0) {
+                        Log.d(TAG, "recognizePicture begin");
+                        results = faceRecognize.recognizePicture(mImage, faces);
+                        Log.d(TAG, "recognizePicture end");
+                    }
+
                     if (mFaceFrameViews != null) {
                         for (int j = 0; j < mFaceFrameViews.length; j++) {
                             frame.removeView(mFaceFrameViews[j]);
@@ -193,7 +200,11 @@ public class RecognizePhotoActivity extends Activity {
                     mImage.width = bitmap.getWidth();
                     iv.setImageBitmap(bitmap);
                     faces = faceDetect.detectPicture(mImage);
-                    results = faceRecognize.recognizePicture(mImage, faces);
+                    if (faces != null && faces.length > 0) {
+                        Log.d(TAG, "recognizePicture begin");
+                        results = faceRecognize.recognizePicture(mImage, faces);
+                        Log.d(TAG, "recognizePicture end");
+                    }
                     if (mFaceFrameViews != null) {
                         for (int j = 0; j < mFaceFrameViews.length; j++) {
                             frame.removeView(mFaceFrameViews[j]);
