@@ -8,6 +8,7 @@ public class Group {
     public String id;
     public String name;
     public int modelType;
+    public String tag;
 
     @Override
     public String toString() {
@@ -15,6 +16,7 @@ public class Group {
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
                 ", modelType=" + modelType +
+                ", tag='" + tag + '\'' +
                 '}';
     }
 }

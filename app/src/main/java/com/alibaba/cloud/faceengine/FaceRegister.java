@@ -44,6 +44,10 @@ public class FaceRegister {
         return FaceRegisterJNI.getGroup(mContext, groupId);
     }
 
+    public Group getGroupByName(String groupName) {
+        return FaceRegisterJNI.getGroupByName(mContext, groupName);
+    }
+
     public Group[] getAllGroups() {
         return FaceRegisterJNI.getAllGroups(mContext);
     }
@@ -66,6 +70,10 @@ public class FaceRegister {
 
     public Person getPerson(String personId) {
         return FaceRegisterJNI.getPerson(mContext, personId);
+    }
+
+    public Person getPersonByName(String groupId, String personName) {
+        return FaceRegisterJNI.getPersonByName(mContext, groupId, personName);
     }
 
     public Person[] getAllPersons(String groupId) {

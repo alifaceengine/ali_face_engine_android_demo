@@ -19,6 +19,8 @@ class FaceRegisterJNI {
 
     public static native Group getGroup(long context, String groupId);
 
+    public static native Group getGroupByName(long context, String groupName);
+
     public static native Group[] getAllGroups(long context);
 
     public static native int addPerson(long context, String groupId, Person person);
@@ -30,6 +32,8 @@ class FaceRegisterJNI {
     public static native int updatePerson(long context, String personId, Person person);
 
     public static native Person getPerson(long context, String personId);
+
+    public static native Person getPersonByName(long context, String groupId, String personName);
 
     public static native Person[] getAllPersons(long context, String groupId);
 
