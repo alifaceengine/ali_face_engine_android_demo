@@ -50,6 +50,7 @@ public class RecognizePhotoActivity extends Activity {
     private float bitmapHeight, bitmapWidth, frameHeight, frameWidth;
     private Image mImage;
     Group[] groupInfos;
+    private int mMode;
     private FaceRegister faceRegister;
     private FaceRecognize faceRecognize;
     private FaceDetect faceDetect;
@@ -72,10 +73,10 @@ public class RecognizePhotoActivity extends Activity {
     }
 
     private void initData() {
-        int mode = SPUtils.getRunMode(this);
+        mMode = SPUtils.getRunMode(this);
         faceRegister = FaceRegister.createInstance();
 
-        if (mode == Mode.CLOUD) {
+        if (mMode == Mode.CLOUD) {
             faceRecognize = FaceRecognize.createInstance(Mode.CLOUD);
         } else {
             faceRecognize = FaceRecognize.createInstance(Mode.TERMINAL);
@@ -117,6 +118,17 @@ public class RecognizePhotoActivity extends Activity {
         groupSpin.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (faceRecognize != null) {
+                    FaceRecognize.deleteInstance(faceRecognize);
+                    faceRecognize = null;
+                }
+
+                if (mMode == Mode.CLOUD) {
+                    faceRecognize = FaceRecognize.createInstance(Mode.CLOUD);
+                } else {
+                    faceRecognize = FaceRecognize.createInstance(Mode.TERMINAL);
+                }
+
                 faceRecognize.setGroupId(groupInfos[position].id);
                 if (bitmap != null) {
                     if (faces != null && faces.length > 0) {
@@ -141,13 +153,14 @@ public class RecognizePhotoActivity extends Activity {
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                faceRecognize.setGroupId("");
+                if (faceRecognize != null) {
+                    FaceRecognize.deleteInstance(faceRecognize);
+                    faceRecognize = null;
+                }
             }
         });
 
-        if (groupInfos == null) {
-            faceRecognize.setGroupId("");
-        } else {
+        if (groupInfos != null) {
             faceRecognize.setGroupId(groupInfos[groupSpin.getSelectedItemPosition()].id);
         }
 
@@ -202,7 +215,9 @@ public class RecognizePhotoActivity extends Activity {
                     faces = faceDetect.detectPicture(mImage);
                     if (faces != null && faces.length > 0) {
                         Log.d(TAG, "recognizePicture begin");
-                        results = faceRecognize.recognizePicture(mImage, faces);
+                        if (faceRecognize != null) {
+                            results = faceRecognize.recognizePicture(mImage, faces);
+                        }
                         Log.d(TAG, "recognizePicture end");
                     }
                     if (mFaceFrameViews != null) {

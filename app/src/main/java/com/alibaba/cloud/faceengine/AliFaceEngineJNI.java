@@ -18,6 +18,12 @@ public class AliFaceEngineJNI {
 
     public static native void setPersistencePath(String path);
 
+    public static native void setConfigString(String key, String value);
+
+    public static native void setConfigInt(String key, int value);
+
+    public static native void setConfigFloat(String key, float value);
+
     static {
         System.loadLibrary("AliFaceEngineJNI");
     }

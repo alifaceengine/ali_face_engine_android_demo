@@ -61,6 +61,7 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
 
     private FaceDetect mFaceDetect;
     private FaceRegister mFaceRegister;
+    private int mMode;
     private FaceRecognize mFaceRecognize;
     private FaceAttributeAnalyze mFaceAttributeAnalyze;
     private FaceRecognize.RecognizeVideoListener mRecognizeVideoListener;
@@ -94,16 +95,76 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
     @Override
     protected void onResume() {
         super.onResume();
+
+        mFaceRegister = FaceRegister.createInstance();
+        mFaceAttributeAnalyze = FaceAttributeAnalyze.createInstance(Mode.TERMINAL);
+        mFaceAttributeAnalyze.setFlag(FaceAttributeAnalyze.QUALITY
+                | FaceAttributeAnalyze.GENDER
+                | FaceAttributeAnalyze.AGE);
+
+        mFaceDetect = FaceDetect.createInstance(Mode.TERMINAL);
+
+        mAllGroups = mFaceRegister.getAllGroups();
+        if (mAllGroups != null) {
+            mAllGroupNames = new String[mAllGroups.length];
+            for (int i = 0; i < mAllGroups.length; i++) {
+                mAllGroupNames[i] = mAllGroups[i].name;
+            }
+        }
+
+        if (mAllGroupNames != null) {
+            ArrayAdapter<String> adapter = new ArrayAdapter<String>(RecognizeCameraActivity.this, R.layout.support_simple_spinner_dropdown_item, mAllGroupNames);
+            mGroupSpinner.setAdapter(adapter);
+            mGroupSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    Log.d(TAG, "setGroupId postion:" + position + " groupId:" + mAllGroups[position].id);
+                    if (mFaceRecognize != null) {
+                        FaceRecognize.deleteInstance(mFaceRecognize);
+                        mFaceRecognize = null;
+                    }
+
+                    if (mMode == Mode.CLOUD) {
+                        mFaceRecognize = FaceRecognize.createInstance(Mode.CLOUD);
+                    } else {
+                        mFaceRecognize = FaceRecognize.createInstance(Mode.TERMINAL);
+                    }
+                    mFaceRecognize.setGroupId(mAllGroups[position].id);
+                    mFaceRecognize.setRecognizeVideoListener(mRecognizeVideoListener);
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+                    if (mFaceRecognize != null) {
+                        FaceRecognize.deleteInstance(mFaceRecognize);
+                        mFaceRecognize = null;
+                    }
+                }
+            });
+        }
+
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         releaseCamera();
-        FaceDetect.deleteInstance(mFaceDetect);
-        FaceRegister.deleteInstance(mFaceRegister);
-        FaceRecognize.deleteInstance(mFaceRecognize);
-        FaceAttributeAnalyze.deleteInstance(mFaceAttributeAnalyze);
+        if (mFaceDetect != null) {
+            FaceDetect.deleteInstance(mFaceDetect);
+            mFaceDetect = null;
+        }
+        if (mFaceRegister != null) {
+            FaceRegister.deleteInstance(mFaceRegister);
+            mFaceRegister = null;
+        }
+        if (mFaceRecognize != null) {
+            FaceRecognize.deleteInstance(mFaceRecognize);
+            mFaceRecognize = null;
+        }
+        if (mFaceAttributeAnalyze != null) {
+            FaceAttributeAnalyze.deleteInstance(mFaceAttributeAnalyze);
+            mFaceAttributeAnalyze = null;
+        }
     }
 
     private void initView() {
@@ -118,24 +179,6 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
         mSurfaceHolder.addCallback(this);
         mSurfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 
-        if (mAllGroupNames != null) {
-            ArrayAdapter<String> adapter = new ArrayAdapter<String>(RecognizeCameraActivity.this, R.layout.support_simple_spinner_dropdown_item, mAllGroupNames);
-            mGroupSpinner.setAdapter(adapter);
-            mGroupSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    Log.d(TAG, "setGroupId postion:" + position + " groupId:" + mAllGroups[position].id);
-                    mFaceRecognize.setGroupId(mAllGroups[position].id);
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> parent) {
-                    mFaceRecognize.setGroupId("");
-                }
-            });
-            mFaceRecognize.setGroupId(mAllGroups[mGroupSpinner.getSelectedItemPosition()].id);
-        }
-
         mRecognizeVideoListener = new FaceRecognize.RecognizeVideoListener() {
             @Override
             public void onRecognized(Image image, RecognizeResult[] results) {
@@ -148,7 +191,6 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
                 mRecognizeResults = results;
             }
         };
-        mFaceRecognize.setRecognizeVideoListener(mRecognizeVideoListener);
 
         mBtnForRegisterForRegister.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -199,28 +241,7 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
 
     private void initData() {
         mCaller = getIntent().getStringExtra("TAG");
-        int mode = SPUtils.getRunMode(this);
-
-        mFaceRegister = FaceRegister.createInstance();
-        if (mode == Mode.CLOUD) {
-            mFaceRecognize = FaceRecognize.createInstance(Mode.CLOUD);
-        } else {
-            mFaceRecognize = FaceRecognize.createInstance(Mode.TERMINAL);
-        }
-        mFaceAttributeAnalyze = FaceAttributeAnalyze.createInstance(Mode.TERMINAL);
-        mFaceAttributeAnalyze.setFlag(FaceAttributeAnalyze.QUALITY
-                | FaceAttributeAnalyze.GENDER
-                | FaceAttributeAnalyze.AGE);
-
-        mFaceDetect = FaceDetect.createInstance(Mode.TERMINAL);
-
-        mAllGroups = mFaceRegister.getAllGroups();
-        if (mAllGroups != null) {
-            mAllGroupNames = new String[mAllGroups.length];
-            for (int i = 0; i < mAllGroups.length; i++) {
-                mAllGroupNames[i] = mAllGroups[i].name;
-            }
-        }
+        mMode = SPUtils.getRunMode(this);
     }
 
     private void init() {
@@ -284,13 +305,18 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
         Log.d(TAG, "onPreviewFrame rotate image cost : " + (System.currentTimeMillis() - beginCost));
 
         beginCost = System.currentTimeMillis();
-        Face[] faces = mFaceDetect.detectVideo(image);
+        Face[] faces = null;
+        if (mFaceDetect != null) {
+            faces = mFaceDetect.detectVideo(image);
+        }
         mDetectCost = System.currentTimeMillis() - beginCost;
         Log.d(TAG, "onPreviewFrame detectVideo cost : " + mDetectCost);
 
         if (faces != null) {
             beginCost = System.currentTimeMillis();
-            mFaceAttributeAnalyze.analyze(image, faces);
+            if (mFaceAttributeAnalyze != null) {
+                mFaceAttributeAnalyze.analyze(image, faces);
+            }
             mAttributeCost = System.currentTimeMillis() - beginCost;
             Log.d(TAG, "onPreviewFrame face attribute cost : " + mAttributeCost);
             for (int i = 0; i < faces.length; i++) {
@@ -313,7 +339,13 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
         //在监听中保存result全局变量 跟face[]中的trackId进行比对
         if (faces != null && faces.length > 0) {
             beginCost = System.currentTimeMillis();
-            mRecognizeResults = mFaceRecognize.recognizePicture(image, faces);
+            if (mFaceRecognize != null) {
+                if (mMode == Mode.CLOUD) {
+                    mFaceRecognize.recognizeVideo(image, faces);
+                } else {
+                    mRecognizeResults = mFaceRecognize.recognizePicture(image, faces);
+                }
+            }
             mRecognizeCost = System.currentTimeMillis() - beginCost;
             Log.d(TAG, "recognizePicture cost : " + mRecognizeCost);
 

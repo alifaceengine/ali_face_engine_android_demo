@@ -33,4 +33,16 @@ public class FaceEngine {
         AliFaceEngineJNI.setPersistencePath(path);
     }
 
+    public static void setConfigString(String key, String value) {
+        AliFaceEngineJNI.setConfigString(key, value);
+    }
+
+    public static void setConfigInt(String key, int value) {
+        AliFaceEngineJNI.setConfigInt(key, value);
+    }
+
+    public static void setConfigFloat(String key, float value) {
+        AliFaceEngineJNI.setConfigFloat(key, value);
+    }
+
 }

@@ -21,6 +21,8 @@ class FaceRecognizeJNI {
 
     public static native RecognizeResult[] recognizePicture(long context, Image image, Face[] faces);
 
+    public static native RecognizeResult recognizeFeature(long context, String feature);
+
     static {
         System.loadLibrary("AliFaceEngineJNI");
     }

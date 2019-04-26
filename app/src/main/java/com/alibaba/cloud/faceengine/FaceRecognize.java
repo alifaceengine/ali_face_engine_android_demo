@@ -50,4 +50,8 @@ public class FaceRecognize {
     public RecognizeResult[] recognizePicture(Image image, Face[] faces) {
         return FaceRecognizeJNI.recognizePicture(mContext, image, faces);
     }
+
+    public RecognizeResult recognizeFeature(String feature) {
+        return FaceRecognizeJNI.recognizeFeature(mContext, feature);
+    }
 }
