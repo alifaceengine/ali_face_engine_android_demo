@@ -11,4 +11,15 @@ public class Image {
     public int width;
     public int stride = 0;
     public int height;
+
+    @Override
+    public String toString() {
+        return "Image{" +
+                "format=" + format +
+                ", rotation=" + rotation +
+                ", width=" + width +
+                ", stride=" + stride +
+                ", height=" + height +
+                '}';
+    }
 }

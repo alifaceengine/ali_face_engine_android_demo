@@ -10,6 +10,8 @@ public class AliFaceEngineJNI {
 
     public static native int authorize(String key);
 
+    public static native String getVendorId();
+
     public static native void setCloudAddr(String ip, int port);
 
     public static native void setCloudLoginAccount(String cId, String cSecret);

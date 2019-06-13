@@ -9,6 +9,10 @@ public class FaceEngine {
         return AliFaceEngineJNI.getVersion();
     }
 
+    public static String getVendorId() {
+        return AliFaceEngineJNI.getVendorId();
+    }
+
     public static int authorize(String key) {
         return AliFaceEngineJNI.authorize(key);
     }
