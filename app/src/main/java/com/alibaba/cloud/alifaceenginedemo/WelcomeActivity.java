@@ -63,7 +63,7 @@ public class WelcomeActivity extends Activity implements View.OnClickListener {
         }
 
         if (!SPUtils.hasAuthKey(this)) {
-            SPUtils.setAuthKey(this, "eyJ2ZW5kb3JJZCI6ImNlc2hpX3ZlbmRvciIsInJvbGUiOjEsImNvZGUiOiJFOEUyNzE1NEY3QjYxMDQ3QjQ0RUNDN0IyOUJFM0ZFQiIsImV4cGlyZSI6IjIwMTkwNjMwIiwidHlwZSI6MX0=");
+            SPUtils.setAuthKey(this, "eyJ2ZW5kb3JJZCI6ImNlc2hpX3ZlbmRvciIsInJvbGUiOjIsImNvZGUiOiJBNEU1QzZCNkMxQkY4RkZENjgwRTY2NkIzMkIxNjI2RSIsImV4cGlyZSI6IjIwMTkwODMxIiwidHlwZSI6MX0=");
         }
 
         int status = FaceEngine.authorize(SPUtils.getAuthKey(this));

@@ -5,8 +5,8 @@ package com.alibaba.cloud.faceengine;
  */
 
 public class ModelType {
-    public static final int MODEL_SMALL = 1;
-    public static final int MODEL_BIG = 2;
+    public static final int MODEL_3K = 1;
+    public static final int MODEL_100K = 2;
 
     private ModelType() {
     }

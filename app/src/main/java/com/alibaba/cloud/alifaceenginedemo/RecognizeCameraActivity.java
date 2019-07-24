@@ -125,11 +125,10 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
                     }
 
                     if (mMode == Mode.CLOUD) {
-                        mFaceRecognize = FaceRecognize.createInstance(Mode.CLOUD);
+                        mFaceRecognize = FaceRecognize.createInstance(mAllGroups[position].name, Mode.CLOUD);
                     } else {
-                        mFaceRecognize = FaceRecognize.createInstance(Mode.TERMINAL);
+                        mFaceRecognize = FaceRecognize.createInstance(mAllGroups[position].name, Mode.TERMINAL);
                     }
-                    mFaceRecognize.setGroupId(mAllGroups[position].id);
                     mFaceRecognize.setRecognizeVideoListener(mRecognizeVideoListener);
                 }
 

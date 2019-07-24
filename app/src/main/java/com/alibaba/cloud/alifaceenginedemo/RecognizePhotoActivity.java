@@ -76,12 +76,6 @@ public class RecognizePhotoActivity extends Activity {
         mMode = SPUtils.getRunMode(this);
         faceRegister = FaceRegister.createInstance();
 
-        if (mMode == Mode.CLOUD) {
-            faceRecognize = FaceRecognize.createInstance(Mode.CLOUD);
-        } else {
-            faceRecognize = FaceRecognize.createInstance(Mode.TERMINAL);
-        }
-
         faceDetect = FaceDetect.createInstance(Mode.TERMINAL);
         DetectParameter detectParameter = faceDetect.getPictureParameter();
         detectParameter.checkAge = 1;
@@ -124,12 +118,11 @@ public class RecognizePhotoActivity extends Activity {
                 }
 
                 if (mMode == Mode.CLOUD) {
-                    faceRecognize = FaceRecognize.createInstance(Mode.CLOUD);
+                    faceRecognize = FaceRecognize.createInstance(groupInfos[position].name, Mode.CLOUD);
                 } else {
-                    faceRecognize = FaceRecognize.createInstance(Mode.TERMINAL);
+                    faceRecognize = FaceRecognize.createInstance(groupInfos[position].name, Mode.TERMINAL);
                 }
 
-                faceRecognize.setGroupId(groupInfos[position].id);
                 if (bitmap != null) {
                     if (faces != null && faces.length > 0) {
                         Log.d(TAG, "recognizePicture begin");
@@ -161,7 +154,11 @@ public class RecognizePhotoActivity extends Activity {
         });
 
         if (groupInfos != null) {
-            faceRecognize.setGroupId(groupInfos[groupSpin.getSelectedItemPosition()].id);
+            if (mMode == Mode.CLOUD) {
+                faceRecognize = FaceRecognize.createInstance(groupInfos[groupSpin.getSelectedItemPosition()].name, Mode.CLOUD);
+            } else {
+                faceRecognize = FaceRecognize.createInstance(groupInfos[groupSpin.getSelectedItemPosition()].name, Mode.TERMINAL);
+            }
         }
 
         btnBack.setOnClickListener(new View.OnClickListener() {

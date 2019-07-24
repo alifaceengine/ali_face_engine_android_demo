@@ -5,15 +5,13 @@ package com.alibaba.cloud.faceengine;
  */
 
 class FaceRecognizeJNI {
-    public static native long createInstance(int mode);
+    public static native long createInstance(String groupName, int mode);
 
     public static native void deleteInstance(long context);
 
     public static native void setRecognizeVideoListener(long context, FaceRecognize.RecognizeVideoListener listener);
 
     public static native FaceRecognize.RecognizeVideoListener getRecognizeVideoListener();
-
-    public static native int setGroupId(long context, String groupId);
 
     public static native int reloadDB(long context);
 

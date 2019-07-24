@@ -76,9 +76,9 @@ public class GroupActivity extends Activity {
         title.setText(R.string.face_library_title);
         tvGroupName.setText(mGroupName);
         tvPeopleNum.setText(mPersonNum + this.getString(R.string.face_library_peolpe));
-        if (mModelType == ModelType.MODEL_BIG) {
+        if (mModelType == ModelType.MODEL_100K) {
             mModelTypeCtrl.setText(R.string.big);
-        } else if (mModelType == ModelType.MODEL_SMALL) {
+        } else if (mModelType == ModelType.MODEL_3K) {
             mModelTypeCtrl.setText(R.string.small);
         }
 

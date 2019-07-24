@@ -33,8 +33,12 @@ public class FaceEngine {
         }
     }
 
-    public static void setPersistencePath(String path) {
-        AliFaceEngineJNI.setPersistencePath(path);
+    public static int setPersistencePath(String path) {
+        return AliFaceEngineJNI.setPersistencePath(path);
+    }
+
+    public static boolean supportGPU() {
+        return AliFaceEngineJNI.supportGPU();
     }
 
     public static void setConfigString(String key, String value) {
@@ -47,6 +51,18 @@ public class FaceEngine {
 
     public static void setConfigFloat(String key, float value) {
         AliFaceEngineJNI.setConfigFloat(key, value);
+    }
+
+    public static String getConfigString(String key, String defaultValue) {
+        return AliFaceEngineJNI.getConfigString(key, defaultValue);
+    }
+
+    public static int getConfigInt(String key, int defaultValue) {
+        return AliFaceEngineJNI.getConfigInt(key, defaultValue);
+    }
+
+    public static float getConfigFloat(String key, float defaultValue) {
+        return AliFaceEngineJNI.getConfigFloat(key, defaultValue);
     }
 
 }

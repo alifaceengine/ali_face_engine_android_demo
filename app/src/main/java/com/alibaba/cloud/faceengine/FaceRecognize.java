@@ -5,8 +5,8 @@ public class FaceRecognize {
         void onRecognized(Image image, RecognizeResult[] results);
     }
 
-    public static FaceRecognize createInstance(int mode) {
-        long context = FaceRecognizeJNI.createInstance(mode);
+    public static FaceRecognize createInstance(String groupName, int mode) {
+        long context = FaceRecognizeJNI.createInstance(groupName, mode);
         if (context == 0) {
             return null;
         }
@@ -33,10 +33,6 @@ public class FaceRecognize {
 
     public RecognizeVideoListener getRecognizeVideoListener() {
         return mListener;
-    }
-
-    public int setGroupId(String groupId) {
-        return FaceRecognizeJNI.setGroupId(mContext, groupId);
     }
 
     public int reloadDB() {

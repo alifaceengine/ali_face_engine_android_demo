@@ -18,13 +18,21 @@ public class AliFaceEngineJNI {
 
     public static native void enableDebug(int enable);
 
-    public static native void setPersistencePath(String path);
+    public static native int setPersistencePath(String path);
+
+    public static native boolean supportGPU();
 
     public static native void setConfigString(String key, String value);
 
     public static native void setConfigInt(String key, int value);
 
     public static native void setConfigFloat(String key, float value);
+
+    public static native String getConfigString(String key, String defaultValue);
+
+    public static native int getConfigInt(String key, int defaultValue);
+
+    public static native float getConfigFloat(String key, float defaultValue);
 
     static {
         System.loadLibrary("AliFaceEngineJNI");

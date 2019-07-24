@@ -8,6 +8,7 @@ public class RecognizeResult {
     public int trackId;
     public String personId;
     public String personName;
+    public String personTag;
     public float similarity;
 
     @Override
@@ -16,6 +17,7 @@ public class RecognizeResult {
                 "trackId=" + trackId +
                 ", personId='" + personId + '\'' +
                 ", personName='" + personName + '\'' +
+                ", personTag='" + personTag + '\'' +
                 ", similarity=" + similarity +
                 '}';
     }

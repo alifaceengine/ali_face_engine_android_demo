@@ -72,10 +72,10 @@ public class CreateGroupDialog extends Dialog implements RadioGroup.OnCheckedCha
     public void onCheckedChanged(RadioGroup group, @IdRes int checkedId) {
         switch (checkedId) {
             case R.id.dialog_radio_big:
-                mModelType = ModelType.MODEL_BIG;
+                mModelType = ModelType.MODEL_100K;
                 break;
             case R.id.dialog_radio_small:
-                mModelType = ModelType.MODEL_SMALL;
+                mModelType = ModelType.MODEL_3K;
                 break;
             default:
                 break;
