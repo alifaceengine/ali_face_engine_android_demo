@@ -66,7 +66,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:checked="false"
-                android:text="@string/big"
+                android:text="100K"
                 android:textSize="20sp" />
 
             <RadioButton
@@ -75,7 +75,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:checked="false"
-                android:text="@string/small"
+                android:text="3K"
                 android:textSize="20sp" />
         </RadioGroup>
     </RelativeLayout>

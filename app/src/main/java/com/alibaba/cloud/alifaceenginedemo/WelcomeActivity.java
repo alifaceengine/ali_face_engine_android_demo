@@ -46,21 +46,6 @@ public class WelcomeActivity extends Activity implements View.OnClickListener {
     private void Initialization() {
         filePath = Utils.filePath;
         Log.d(TAG, "FaceEngine.getVersion:" + FaceEngine.getVersion());
-        FaceEngine.enableDebug(true);
-        if (isFile(filePath)) {
-            FaceEngine.setPersistencePath(filePath);
-        }
-
-        boolean useCloud = (Boolean) SPUtils.get(this, SPUtils.KEY_USE_CLOUD, SPUtils.DEFAULT_VALUE_USE_CLOUD);
-        if (useCloud) {
-            FaceEngine.setCloudAddr(SPUtils.get(this, SPUtils.KEY_CLOUD_IP, "101.132.89.177").toString(),
-                    Integer.parseInt(SPUtils.get(this, SPUtils.KEY_CLOUD_PORT, "15000").toString()));
-            FaceEngine.setCloudLoginAccount(SPUtils.get(this, SPUtils.KEY_CLOUD_USERNAME, "admin").toString(),
-                    SPUtils.get(this, SPUtils.KEY_CLOUD_USERPSW, "admin").toString());
-        } else {
-            FaceEngine.setCloudAddr("", 0);
-            FaceEngine.setCloudLoginAccount("", "");
-        }
 
         if (!SPUtils.hasAuthKey(this)) {
             SPUtils.setAuthKey(this, "eyJ2ZW5kb3JJZCI6ImNlc2hpX3ZlbmRvciIsInJvbGUiOjIsImNvZGUiOiJBNEU1QzZCNkMxQkY4RkZENjgwRTY2NkIzMkIxNjI2RSIsImV4cGlyZSI6IjIwMTkwODMxIiwidHlwZSI6MX0=");
@@ -71,6 +56,23 @@ public class WelcomeActivity extends Activity implements View.OnClickListener {
             toastAuthFail();
         } else {
             AuthSuccess = true;
+        }
+
+        FaceEngine.enableDebug(true);
+
+        if (isFile(filePath)) {
+            FaceEngine.setPersistencePath(filePath);
+        }
+
+        boolean useCloud = (Boolean) SPUtils.get(this, SPUtils.KEY_USE_CLOUD, SPUtils.DEFAULT_VALUE_USE_CLOUD);
+        if (useCloud) {
+            FaceEngine.setCloudAddr(SPUtils.get(this, SPUtils.KEY_CLOUD_IP, "101.132.89.177").toString(),
+                    Integer.parseInt(SPUtils.get(this, SPUtils.KEY_CLOUD_PORT, "15004").toString()));
+            FaceEngine.setCloudLoginAccount(SPUtils.get(this, SPUtils.KEY_CLOUD_USERNAME, "user_register").toString(),
+                    SPUtils.get(this, SPUtils.KEY_CLOUD_USERPSW, "666666").toString());
+        } else {
+            FaceEngine.setCloudAddr("", 0);
+            FaceEngine.setCloudLoginAccount("", "");
         }
     }
 

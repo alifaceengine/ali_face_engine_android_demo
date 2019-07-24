@@ -39,6 +39,7 @@ import com.alibaba.cloud.faceengine.Group;
 import com.alibaba.cloud.faceengine.Image;
 import com.alibaba.cloud.faceengine.ImageRotation;
 import com.alibaba.cloud.faceengine.Mode;
+import com.alibaba.cloud.faceengine.ModelType;
 import com.alibaba.cloud.faceengine.RecognizeResult;
 
 import java.io.File;
@@ -61,7 +62,6 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
 
     private FaceDetect mFaceDetect;
     private FaceRegister mFaceRegister;
-    private int mMode;
     private FaceRecognize mFaceRecognize;
     private FaceAttributeAnalyze mFaceAttributeAnalyze;
     private FaceRecognize.RecognizeVideoListener mRecognizeVideoListener;
@@ -118,13 +118,13 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
             mGroupSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    Log.d(TAG, "setGroupId postion:" + position + " groupId:" + mAllGroups[position].id);
+                    Log.d(TAG, "onItemSelected postion:" + position + " groupId:" + mAllGroups[position].id);
                     if (mFaceRecognize != null) {
                         FaceRecognize.deleteInstance(mFaceRecognize);
                         mFaceRecognize = null;
                     }
 
-                    if (mMode == Mode.CLOUD) {
+                    if (mAllGroups[position].modelType == ModelType.MODEL_100K) {
                         mFaceRecognize = FaceRecognize.createInstance(mAllGroups[position].name, Mode.CLOUD);
                     } else {
                         mFaceRecognize = FaceRecognize.createInstance(mAllGroups[position].name, Mode.TERMINAL);
@@ -240,7 +240,6 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
 
     private void initData() {
         mCaller = getIntent().getStringExtra("TAG");
-        mMode = SPUtils.getRunMode(this);
     }
 
     private void init() {
@@ -339,11 +338,7 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
         if (faces != null && faces.length > 0) {
             beginCost = System.currentTimeMillis();
             if (mFaceRecognize != null) {
-                if (mMode == Mode.CLOUD) {
-                    mFaceRecognize.recognizeVideo(image, faces);
-                } else {
-                    mRecognizeResults = mFaceRecognize.recognizePicture(image, faces);
-                }
+                mFaceRecognize.recognizeVideo(image, faces);
             }
             mRecognizeCost = System.currentTimeMillis() - beginCost;
             Log.d(TAG, "recognizePicture cost : " + mRecognizeCost);

@@ -32,6 +32,7 @@ import com.alibaba.cloud.faceengine.Group;
 import com.alibaba.cloud.faceengine.Image;
 import com.alibaba.cloud.faceengine.ImageRotation;
 import com.alibaba.cloud.faceengine.Mode;
+import com.alibaba.cloud.faceengine.ModelType;
 import com.alibaba.cloud.faceengine.RecognizeResult;
 
 import java.io.FileNotFoundException;
@@ -50,7 +51,6 @@ public class RecognizePhotoActivity extends Activity {
     private float bitmapHeight, bitmapWidth, frameHeight, frameWidth;
     private Image mImage;
     Group[] groupInfos;
-    private int mMode;
     private FaceRegister faceRegister;
     private FaceRecognize faceRecognize;
     private FaceDetect faceDetect;
@@ -73,7 +73,6 @@ public class RecognizePhotoActivity extends Activity {
     }
 
     private void initData() {
-        mMode = SPUtils.getRunMode(this);
         faceRegister = FaceRegister.createInstance();
 
         faceDetect = FaceDetect.createInstance(Mode.TERMINAL);
@@ -117,7 +116,7 @@ public class RecognizePhotoActivity extends Activity {
                     faceRecognize = null;
                 }
 
-                if (mMode == Mode.CLOUD) {
+                if (groupInfos[position].modelType == ModelType.MODEL_100K) {
                     faceRecognize = FaceRecognize.createInstance(groupInfos[position].name, Mode.CLOUD);
                 } else {
                     faceRecognize = FaceRecognize.createInstance(groupInfos[position].name, Mode.TERMINAL);
@@ -154,7 +153,7 @@ public class RecognizePhotoActivity extends Activity {
         });
 
         if (groupInfos != null) {
-            if (mMode == Mode.CLOUD) {
+            if (groupInfos[groupSpin.getSelectedItemPosition()].modelType == ModelType.MODEL_100K) {
                 faceRecognize = FaceRecognize.createInstance(groupInfos[groupSpin.getSelectedItemPosition()].name, Mode.CLOUD);
             } else {
                 faceRecognize = FaceRecognize.createInstance(groupInfos[groupSpin.getSelectedItemPosition()].name, Mode.TERMINAL);

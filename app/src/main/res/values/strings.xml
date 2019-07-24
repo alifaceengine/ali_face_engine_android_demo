@@ -37,8 +37,8 @@
     <string name="pass_word">PassWord:</string>
     <string name="cancel">Cancel</string>
     <string name="model_type">Type:</string>
-    <string name="big">Big</string>
-    <string name="small">Small</string>
+    <string name="big">100K</string>
+    <string name="small">3K</string>
     <string name="group_name">GroupName:</string>
     <string name="dialog_message_group_name">group name can not be empty</string>
     <string name="auth_key">Key</string>

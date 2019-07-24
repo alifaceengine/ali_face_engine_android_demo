@@ -37,8 +37,8 @@
     <string name="pass_word">密码:</string>
     <string name="cancel">取消</string>
     <string name="model_type">模型类型:</string>
-    <string name="big">大</string>
-    <string name="small">小</string>
+    <string name="big">100K</string>
+    <string name="small">3K</string>
     <string name="group_name">组名:</string>
     <string name="dialog_message_group_name">组名不能为空</string>
     <string name="auth_key">授权码</string>
