@@ -1,14 +1,14 @@
 package com.alibaba.cloud.faceengine;
 
-/**
- * Created by junyuan.hjy on 2018/8/24.
- */
-
 public class AliFaceEngineJNI {
 
     public static native String getVersion();
 
     public static native int authorize(String key);
+
+    public static native boolean isAuthorized();
+
+    public static native boolean supportCloud();
 
     public static native String getVendorId();
 

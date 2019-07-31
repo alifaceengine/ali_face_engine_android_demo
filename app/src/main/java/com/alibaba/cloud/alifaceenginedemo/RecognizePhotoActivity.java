@@ -26,6 +26,7 @@ import android.widget.TextView;
 import com.alibaba.cloud.faceengine.DetectParameter;
 import com.alibaba.cloud.faceengine.Face;
 import com.alibaba.cloud.faceengine.FaceDetect;
+import com.alibaba.cloud.faceengine.FaceEngine;
 import com.alibaba.cloud.faceengine.FaceRecognize;
 import com.alibaba.cloud.faceengine.FaceRegister;
 import com.alibaba.cloud.faceengine.Group;
@@ -50,11 +51,11 @@ public class RecognizePhotoActivity extends Activity {
     private Bitmap bitmap;
     private float bitmapHeight, bitmapWidth, frameHeight, frameWidth;
     private Image mImage;
-    Group[] mGroups;
     private FaceRegister mFaceRegister;
     private FaceRecognize mFaceRecognize;
     private FaceDetect mFaceDetect;
     private List<String> mGroupNames;
+    private List<Group> mAllGroups;
     private Face[] faces;
     private FaceFrameView[] mFaceFrameViews;
     private RecognizeResult[] results;
@@ -86,15 +87,20 @@ public class RecognizePhotoActivity extends Activity {
         detectParameter.checkGlass = 1;
         mFaceDetect.setPictureParameter(detectParameter);
 
-        mGroups = mFaceRegister.getAllGroups();
+        mAllGroups = new ArrayList<Group>();
+        Group[] groups = mFaceRegister.getAllGroups();
         mGroupNames = new ArrayList<String>();
 
-        if (mGroups != null) {
-            for (int i = 0; i < mGroups.length; i++) {
-                if (mGroups[i].modelType == ModelType.MODEL_100K) {
-                    mGroupNames.add(mGroups[i].name + " (100K)");
+        if (groups != null) {
+            for (int i = 0; i < groups.length; i++) {
+                if (groups[i].modelType == ModelType.MODEL_100K) {
+                    if (FaceEngine.supportCloud()) {
+                        mGroupNames.add(groups[i].name + " (100K)");
+                        mAllGroups.add(groups[i]);
+                    }
                 } else {
-                    mGroupNames.add(mGroups[i].name + " (3K)");
+                    mGroupNames.add(groups[i].name + " (3K)");
+                    mAllGroups.add(groups[i]);
                 }
             }
         }
@@ -121,10 +127,10 @@ public class RecognizePhotoActivity extends Activity {
                     mFaceRecognize = null;
                 }
 
-                if (mGroups[position].modelType == ModelType.MODEL_100K) {
-                    mFaceRecognize = FaceRecognize.createInstance(mGroups[position].name, Mode.CLOUD);
+                if (mAllGroups.get(position).modelType == ModelType.MODEL_100K) {
+                    mFaceRecognize = FaceRecognize.createInstance(mAllGroups.get(position).name, Mode.CLOUD);
                 } else {
-                    mFaceRecognize = FaceRecognize.createInstance(mGroups[position].name, Mode.TERMINAL);
+                    mFaceRecognize = FaceRecognize.createInstance(mAllGroups.get(position).name, Mode.TERMINAL);
                 }
 
                 if (bitmap != null) {
@@ -157,11 +163,11 @@ public class RecognizePhotoActivity extends Activity {
             }
         });
 
-        if (mGroups != null) {
-            if (mGroups[groupSpin.getSelectedItemPosition()].modelType == ModelType.MODEL_100K) {
-                mFaceRecognize = FaceRecognize.createInstance(mGroups[groupSpin.getSelectedItemPosition()].name, Mode.CLOUD);
+        if (mAllGroups.size() > 0) {
+            if (mAllGroups.get(groupSpin.getSelectedItemPosition()).modelType == ModelType.MODEL_100K) {
+                mFaceRecognize = FaceRecognize.createInstance(mAllGroups.get(groupSpin.getSelectedItemPosition()).name, Mode.CLOUD);
             } else {
-                mFaceRecognize = FaceRecognize.createInstance(mGroups[groupSpin.getSelectedItemPosition()].name, Mode.TERMINAL);
+                mFaceRecognize = FaceRecognize.createInstance(mAllGroups.get(groupSpin.getSelectedItemPosition()).name, Mode.TERMINAL);
             }
         }
 

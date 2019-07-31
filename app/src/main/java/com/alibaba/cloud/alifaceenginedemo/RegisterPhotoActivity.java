@@ -24,6 +24,7 @@ import android.widget.Toast;
 import com.alibaba.cloud.faceengine.Error;
 import com.alibaba.cloud.faceengine.Face;
 import com.alibaba.cloud.faceengine.FaceDetect;
+import com.alibaba.cloud.faceengine.FaceEngine;
 import com.alibaba.cloud.faceengine.FaceRegister;
 import com.alibaba.cloud.faceengine.Feature;
 import com.alibaba.cloud.faceengine.Group;
@@ -46,7 +47,7 @@ public class RegisterPhotoActivity extends Activity {
     private ImageView mPhotoCtrl;
     private Button mBtnAdd;
     private FaceRegister mFaceRegister;
-    private Group[] mGroups;
+    private List<Group> mAllGroups;
     private List<String> mGroupNames;
     private TextView mTitle;
     private static final int ALBUM_OK = 0;
@@ -81,7 +82,7 @@ public class RegisterPhotoActivity extends Activity {
         mBtnAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mGroups == null || mGroups.length == 0) {
+                if (mAllGroups == null || mAllGroups.size() == 0) {
                     Toast.makeText(RegisterPhotoActivity.this, RegisterPhotoActivity.this.getString(R.string.please_create_group_first), Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -95,7 +96,7 @@ public class RegisterPhotoActivity extends Activity {
 
                 Person person = new Person();
                 person.name = personName;
-                String groupId = mGroups[spinner.getSelectedItemPosition()].id;
+                String groupId = mAllGroups.get(spinner.getSelectedItemPosition()).id;
 
                 Log.d(TAG, "addPerson begin");
                 int status = mFaceRegister.addPerson(groupId, person);
@@ -126,7 +127,7 @@ public class RegisterPhotoActivity extends Activity {
                 }
                 Log.d(TAG, "detectPicture faces count :" + faces.length);
 
-                String featureStr = mFaceRegister.extractFeature(image, faces[0], mGroups[spinner.getSelectedItemPosition()].modelType);
+                String featureStr = mFaceRegister.extractFeature(image, faces[0], mAllGroups.get(spinner.getSelectedItemPosition()).modelType);
                 if (featureStr == null || featureStr.length() == 0) {
                     Log.d(TAG, "extractFeature fail");
                     Toast.makeText(RegisterPhotoActivity.this,
@@ -166,14 +167,20 @@ public class RegisterPhotoActivity extends Activity {
     private void initData() {
         mFaceRegister = FaceRegister.createInstance();
         mFaceDetect = FaceDetect.createInstance(Mode.TERMINAL);
-        mGroups = mFaceRegister.getAllGroups();
+
+        mAllGroups = new ArrayList<Group>();
+        Group[] allGroups = mFaceRegister.getAllGroups();
         mGroupNames = new ArrayList<String>();
-        if (mGroups != null) {
-            for (int i = 0; i < mGroups.length; i++) {
-                if (mGroups[i].modelType == ModelType.MODEL_100K) {
-                    mGroupNames.add(mGroups[i].name + " (100K)");
+        if (allGroups != null) {
+            for (int i = 0; i < allGroups.length; i++) {
+                if (allGroups[i].modelType == ModelType.MODEL_100K) {
+                    if (FaceEngine.supportCloud()) {
+                        mGroupNames.add(allGroups[i].name + " (100K)");
+                        mAllGroups.add(allGroups[i]);
+                    }
                 } else {
-                    mGroupNames.add(mGroups[i].name + " (3K)");
+                    mGroupNames.add(allGroups[i].name + " (3K)");
+                    mAllGroups.add(allGroups[i]);
                 }
             }
         }

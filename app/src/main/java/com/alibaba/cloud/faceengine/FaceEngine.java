@@ -17,6 +17,14 @@ public class FaceEngine {
         return AliFaceEngineJNI.authorize(key);
     }
 
+    public static boolean isAuthorized() {
+        return AliFaceEngineJNI.isAuthorized();
+    }
+
+    public static boolean supportCloud() {
+        return AliFaceEngineJNI.supportCloud();
+    }
+
     public static void setCloudAddr(String ip, int port) {
         AliFaceEngineJNI.setCloudAddr(ip, port);
     }

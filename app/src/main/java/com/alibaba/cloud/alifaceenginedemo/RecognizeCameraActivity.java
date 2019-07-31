@@ -31,6 +31,7 @@ import com.alibaba.cloud.faceengine.Expression;
 import com.alibaba.cloud.faceengine.Face;
 import com.alibaba.cloud.faceengine.FaceAttributeAnalyze;
 import com.alibaba.cloud.faceengine.FaceDetect;
+import com.alibaba.cloud.faceengine.FaceEngine;
 import com.alibaba.cloud.faceengine.FaceRecognize;
 import com.alibaba.cloud.faceengine.FaceRegister;
 import com.alibaba.cloud.faceengine.Gender;
@@ -46,6 +47,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RecognizeCameraActivity extends Activity implements SurfaceHolder.Callback, Camera.PreviewCallback {
     private static String TAG = "AFE_RecognizeCameraActivity";
@@ -57,8 +60,8 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
     private int mCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
     private int mRotation = 0;
 
-    private Group[] mAllGroups;
-    private String[] mAllGroupNames;
+    private List<Group> mAllGroups;
+    private List<String> mAllGroupNames;
 
     private FaceDetect mFaceDetect;
     private FaceRegister mFaceRegister;
@@ -104,14 +107,19 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
 
         mFaceDetect = FaceDetect.createInstance(Mode.TERMINAL);
 
-        mAllGroups = mFaceRegister.getAllGroups();
-        if (mAllGroups != null) {
-            mAllGroupNames = new String[mAllGroups.length];
-            for (int i = 0; i < mAllGroups.length; i++) {
-                if (mAllGroups[i].modelType == ModelType.MODEL_100K) {
-                    mAllGroupNames[i] = mAllGroups[i].name + " (100K)";
+        mAllGroups = new ArrayList<Group>();
+        Group[] allGroups = mFaceRegister.getAllGroups();
+        if (allGroups != null) {
+            mAllGroupNames = new ArrayList<String>();
+            for (int i = 0; i < allGroups.length; i++) {
+                if (allGroups[i].modelType == ModelType.MODEL_100K) {
+                    if (FaceEngine.supportCloud()) {
+                        mAllGroupNames.add(allGroups[i].name + " (100K)");
+                        mAllGroups.add(allGroups[i]);
+                    }
                 } else {
-                    mAllGroupNames[i] = mAllGroups[i].name + " (3K)";
+                    mAllGroupNames.add(allGroups[i].name + " (3K)");
+                    mAllGroups.add(allGroups[i]);
                 }
             }
         }
@@ -122,16 +130,16 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
             mGroupSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    Log.d(TAG, "onItemSelected postion:" + position + " groupId:" + mAllGroups[position].id);
+                    Log.d(TAG, "onItemSelected postion:" + position + " groupId:" + mAllGroups.get(position).id);
                     if (mFaceRecognize != null) {
                         FaceRecognize.deleteInstance(mFaceRecognize);
                         mFaceRecognize = null;
                     }
 
-                    if (mAllGroups[position].modelType == ModelType.MODEL_100K) {
-                        mFaceRecognize = FaceRecognize.createInstance(mAllGroups[position].name, Mode.CLOUD);
+                    if (mAllGroups.get(position).modelType == ModelType.MODEL_100K) {
+                        mFaceRecognize = FaceRecognize.createInstance(mAllGroups.get(position).name, Mode.CLOUD);
                     } else {
-                        mFaceRecognize = FaceRecognize.createInstance(mAllGroups[position].name, Mode.TERMINAL);
+                        mFaceRecognize = FaceRecognize.createInstance(mAllGroups.get(position).name, Mode.TERMINAL);
                     }
                     mFaceRecognize.setRecognizeVideoListener(mRecognizeVideoListener);
                 }

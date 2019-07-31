@@ -23,6 +23,7 @@ import android.widget.Toast;
 import com.alibaba.cloud.faceengine.Error;
 import com.alibaba.cloud.faceengine.Face;
 import com.alibaba.cloud.faceengine.FaceDetect;
+import com.alibaba.cloud.faceengine.FaceEngine;
 import com.alibaba.cloud.faceengine.FaceRecognize;
 import com.alibaba.cloud.faceengine.FaceRegister;
 import com.alibaba.cloud.faceengine.Feature;
@@ -48,7 +49,7 @@ public class RegisterCameraActivity extends Activity {
     private ImageView ivPhoto;
     private Button btn;
     private FaceRegister mFaceRegister;
-    private Group[] mAllGroups;
+    private List<Group> mAllGroups;
     private List<String> mAllGroupNames;
     private TextView title;
     private static final int ALBUM_OK = 0;
@@ -85,7 +86,7 @@ public class RegisterCameraActivity extends Activity {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mAllGroups == null || mAllGroups.length == 0) {
+                if (mAllGroups == null || mAllGroups.size() == 0) {
                     Toast.makeText(RegisterCameraActivity.this, RegisterCameraActivity.this.getString(R.string.please_create_group_first), Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -101,7 +102,7 @@ public class RegisterCameraActivity extends Activity {
                 } else {
                     Person person = new Person();
                     person.name = name;
-                    status = mFaceRegister.addPerson(mAllGroups[spinner.getSelectedItemPosition()].id, person);
+                    status = mFaceRegister.addPerson(mAllGroups.get(spinner.getSelectedItemPosition()).id, person);
                     if (status == Error.OK || status == Error.ERROR_EXISTED || status == Error.ERROR_CLOUD_EXISTED_ERROR) {
                         Image image = new Image();
                         image.data = Utils.bitmap2RGB(bitmap);
@@ -110,7 +111,7 @@ public class RegisterCameraActivity extends Activity {
                         image.height = bitmap.getHeight();
                         image.width = bitmap.getWidth();
                         faces = faceDetect.detectPicture(image);
-                        String Feature = mFaceRegister.extractFeature(image, faces[0], mAllGroups[spinner.getSelectedItemPosition()].modelType);
+                        String Feature = mFaceRegister.extractFeature(image, faces[0], mAllGroups.get(spinner.getSelectedItemPosition()).modelType);
                         Feature feature = new Feature();
                         feature.name = edName.getText().toString();
                         feature.feature = Feature;
@@ -144,14 +145,19 @@ public class RegisterCameraActivity extends Activity {
     private void initData() {
         mFaceRegister = FaceRegister.createInstance();
         faceDetect = FaceDetect.createInstance(Mode.TERMINAL);
-        mAllGroups = mFaceRegister.getAllGroups();
+        mAllGroups = new ArrayList<Group>();
+        Group[] allGroups = mFaceRegister.getAllGroups();
         mAllGroupNames = new ArrayList<String>();
         if (mAllGroups != null) {
-            for (int i = 0; i < mAllGroups.length; i++) {
-                if (mAllGroups[i].modelType == ModelType.MODEL_100K) {
-                    mAllGroupNames.add(mAllGroups[i].name + " (100K)");
+            for (int i = 0; i < allGroups.length; i++) {
+                if (allGroups[i].modelType == ModelType.MODEL_100K) {
+                    if (FaceEngine.supportCloud()) {
+                        mAllGroupNames.add(allGroups[i].name + " (100K)");
+                        mAllGroups.add(allGroups[i]);
+                    }
                 } else {
-                    mAllGroupNames.add(mAllGroups[i].name + " (3K)");
+                    mAllGroupNames.add(allGroups[i].name + " (3K)");
+                    mAllGroups.add(allGroups[i]);
                 }
             }
         }
