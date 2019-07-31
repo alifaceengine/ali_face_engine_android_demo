@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -30,6 +31,7 @@ import com.alibaba.cloud.faceengine.Image;
 import com.alibaba.cloud.faceengine.ImageFormat;
 import com.alibaba.cloud.faceengine.ImageRotation;
 import com.alibaba.cloud.faceengine.Mode;
+import com.alibaba.cloud.faceengine.ModelType;
 import com.alibaba.cloud.faceengine.Person;
 
 import java.io.FileNotFoundException;
@@ -55,6 +57,7 @@ public class RegisterPhotoActivity extends Activity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate");
         setContentView(R.layout.activity_registeredphoto);
         initData();
         init();
@@ -94,13 +97,16 @@ public class RegisterPhotoActivity extends Activity {
                 person.name = personName;
                 String groupId = mGroups[spinner.getSelectedItemPosition()].id;
 
+                Log.d(TAG, "addPerson begin");
                 int status = mFaceRegister.addPerson(groupId, person);
                 if (status != Error.OK && status != Error.ERROR_EXISTED) {
+                    Log.d(TAG, "addPerson fail");
                     Toast.makeText(RegisterPhotoActivity.this,
                             RegisterPhotoActivity.this.getString(R.string.add_failure) + status,
                             Toast.LENGTH_LONG).show();
                     return;
                 }
+                Log.d(TAG, "addPerson success");
 
                 Image image = new Image();
                 image.data = Utils.bitmap2RGB(mPicture);
@@ -109,16 +115,20 @@ public class RegisterPhotoActivity extends Activity {
                 image.height = mPicture.getHeight();
                 image.width = mPicture.getWidth();
 
+                Log.d(TAG, "detectPicture begin");
                 Face[] faces = mFaceDetect.detectPicture(image);
                 if (faces == null || faces.length == 0) {
+                    Log.d(TAG, "detectPicture no face");
                     Toast.makeText(RegisterPhotoActivity.this,
                             RegisterPhotoActivity.this.getString(R.string.no_detected),
                             Toast.LENGTH_LONG).show();
                     return;
                 }
+                Log.d(TAG, "detectPicture faces count :" + faces.length);
 
                 String featureStr = mFaceRegister.extractFeature(image, faces[0], mGroups[spinner.getSelectedItemPosition()].modelType);
                 if (featureStr == null || featureStr.length() == 0) {
+                    Log.d(TAG, "extractFeature fail");
                     Toast.makeText(RegisterPhotoActivity.this,
                             RegisterPhotoActivity.this.getString(R.string.extract_feature) +
                                     RegisterPhotoActivity.this.getString(R.string.fail),
@@ -126,15 +136,20 @@ public class RegisterPhotoActivity extends Activity {
                     return;
                 }
 
+                Log.d(TAG, "extractFeature success");
+
                 Feature feature = new Feature();
                 feature.name = featureName;
                 feature.feature = featureStr;
 
+                Log.d(TAG, "addFeature begin");
                 int result = mFaceRegister.addFeature(person.id, feature);
                 if (result == Error.OK) {
+                    Log.d(TAG, "addFeature success");
                     Toast.makeText(RegisterPhotoActivity.this, RegisterPhotoActivity.this.getString(R.string.add_success), Toast.LENGTH_LONG).show();
                     RegisterPhotoActivity.this.finish();
                 } else {
+                    Log.d(TAG, "addFeature fail");
                     Toast.makeText(RegisterPhotoActivity.this, RegisterPhotoActivity.this.getString(R.string.add_failure) + result, Toast.LENGTH_LONG).show();
                 }
             }
@@ -155,7 +170,11 @@ public class RegisterPhotoActivity extends Activity {
         mGroupNames = new ArrayList<String>();
         if (mGroups != null) {
             for (int i = 0; i < mGroups.length; i++) {
-                mGroupNames.add(mGroups[i].name);
+                if (mGroups[i].modelType == ModelType.MODEL_100K) {
+                    mGroupNames.add(mGroups[i].name + " |100K");
+                } else {
+                    mGroupNames.add(mGroups[i].name + " |3K");
+                }
             }
         }
     }

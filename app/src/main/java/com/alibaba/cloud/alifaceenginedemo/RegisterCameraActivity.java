@@ -31,6 +31,7 @@ import com.alibaba.cloud.faceengine.Image;
 import com.alibaba.cloud.faceengine.ImageFormat;
 import com.alibaba.cloud.faceengine.ImageRotation;
 import com.alibaba.cloud.faceengine.Mode;
+import com.alibaba.cloud.faceengine.ModelType;
 import com.alibaba.cloud.faceengine.Person;
 
 import java.io.File;
@@ -38,10 +39,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
-
-/**
- * Created by h on 2018/9/12.
- */
 
 public class RegisterCameraActivity extends Activity {
     private static final String TAG = "AFE_" + RegisterCameraActivity.class.getSimpleName();
@@ -152,6 +149,12 @@ public class RegisterCameraActivity extends Activity {
         if (mAllGroups != null) {
             for (int i = 0; i < mAllGroups.length; i++) {
                 mAllGroupNames.add(mAllGroups[i].name);
+
+                if (mAllGroups[i].modelType == ModelType.MODEL_100K) {
+                    mAllGroupNames.add(mAllGroups[i].name + " |100K");
+                } else {
+                    mAllGroupNames.add(mAllGroups[i].name + " |3K");
+                }
             }
         }
     }

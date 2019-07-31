@@ -108,7 +108,11 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
         if (mAllGroups != null) {
             mAllGroupNames = new String[mAllGroups.length];
             for (int i = 0; i < mAllGroups.length; i++) {
-                mAllGroupNames[i] = mAllGroups[i].name;
+                if (mAllGroups[i].modelType == ModelType.MODEL_100K) {
+                    mAllGroupNames[i] = mAllGroups[i].name + " |100K";
+                } else {
+                    mAllGroupNames[i] = mAllGroups[i].name + " |3K";
+                }
             }
         }
 

@@ -36,6 +36,8 @@ public class AllGroupsActivity extends Activity {
         setContentView(R.layout.activity_groups);
 
         mFaceRegister = FaceRegister.createInstance();
+
+        Log.d(TAG, "mFaceRegister: " + mFaceRegister);
         initData();
         init();
         initView();

@@ -50,11 +50,11 @@ public class RecognizePhotoActivity extends Activity {
     private Bitmap bitmap;
     private float bitmapHeight, bitmapWidth, frameHeight, frameWidth;
     private Image mImage;
-    Group[] groupInfos;
-    private FaceRegister faceRegister;
-    private FaceRecognize faceRecognize;
-    private FaceDetect faceDetect;
-    private List<String> spin_data;
+    Group[] mGroups;
+    private FaceRegister mFaceRegister;
+    private FaceRecognize mFaceRecognize;
+    private FaceDetect mFaceDetect;
+    private List<String> mGroupNames;
     private Face[] faces;
     private FaceFrameView[] mFaceFrameViews;
     private RecognizeResult[] results;
@@ -66,6 +66,7 @@ public class RecognizePhotoActivity extends Activity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate");
         setContentView(R.layout.activity_recognizephoto);
         initData();
         init();
@@ -73,24 +74,28 @@ public class RecognizePhotoActivity extends Activity {
     }
 
     private void initData() {
-        faceRegister = FaceRegister.createInstance();
+        mFaceRegister = mFaceRegister.createInstance();
 
-        faceDetect = FaceDetect.createInstance(Mode.TERMINAL);
-        DetectParameter detectParameter = faceDetect.getPictureParameter();
+        mFaceDetect = FaceDetect.createInstance(Mode.TERMINAL);
+        DetectParameter detectParameter = mFaceDetect.getPictureParameter();
         detectParameter.checkAge = 1;
         detectParameter.checkLiveness = 1;
         detectParameter.checkQuality = 1;
         detectParameter.checkGender = 1;
         detectParameter.checkExpression = 1;
         detectParameter.checkGlass = 1;
-        faceDetect.setPictureParameter(detectParameter);
+        mFaceDetect.setPictureParameter(detectParameter);
 
-        groupInfos = faceRegister.getAllGroups();
-        spin_data = new ArrayList<String>();
+        mGroups = mFaceRegister.getAllGroups();
+        mGroupNames = new ArrayList<String>();
 
-        if (groupInfos != null) {
-            for (int i = 0; i < groupInfos.length; i++) {
-                spin_data.add(groupInfos[i].name);
+        if (mGroups != null) {
+            for (int i = 0; i < mGroups.length; i++) {
+                if (mGroups[i].modelType == ModelType.MODEL_100K) {
+                    mGroupNames.add(mGroups[i].name + " |100K");
+                } else {
+                    mGroupNames.add(mGroups[i].name + " |3K");
+                }
             }
         }
     }
@@ -106,26 +111,26 @@ public class RecognizePhotoActivity extends Activity {
                 startActivityForResult(intentIv, ALBUM_OK);
             }
         });
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(RecognizePhotoActivity.this, R.layout.support_simple_spinner_dropdown_item, spin_data);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(RecognizePhotoActivity.this, R.layout.support_simple_spinner_dropdown_item, mGroupNames);
         groupSpin.setAdapter(adapter);
         groupSpin.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (faceRecognize != null) {
-                    FaceRecognize.deleteInstance(faceRecognize);
-                    faceRecognize = null;
+                if (mFaceRecognize != null) {
+                    FaceRecognize.deleteInstance(mFaceRecognize);
+                    mFaceRecognize = null;
                 }
 
-                if (groupInfos[position].modelType == ModelType.MODEL_100K) {
-                    faceRecognize = FaceRecognize.createInstance(groupInfos[position].name, Mode.CLOUD);
+                if (mGroups[position].modelType == ModelType.MODEL_100K) {
+                    mFaceRecognize = FaceRecognize.createInstance(mGroups[position].name, Mode.CLOUD);
                 } else {
-                    faceRecognize = FaceRecognize.createInstance(groupInfos[position].name, Mode.TERMINAL);
+                    mFaceRecognize = FaceRecognize.createInstance(mGroups[position].name, Mode.TERMINAL);
                 }
 
                 if (bitmap != null) {
                     if (faces != null && faces.length > 0) {
                         Log.d(TAG, "recognizePicture begin");
-                        results = faceRecognize.recognizePicture(mImage, faces);
+                        results = mFaceRecognize.recognizePicture(mImage, faces);
                         Log.d(TAG, "recognizePicture end");
                     }
 
@@ -145,18 +150,18 @@ public class RecognizePhotoActivity extends Activity {
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                if (faceRecognize != null) {
-                    FaceRecognize.deleteInstance(faceRecognize);
-                    faceRecognize = null;
+                if (mFaceRecognize != null) {
+                    FaceRecognize.deleteInstance(mFaceRecognize);
+                    mFaceRecognize = null;
                 }
             }
         });
 
-        if (groupInfos != null) {
-            if (groupInfos[groupSpin.getSelectedItemPosition()].modelType == ModelType.MODEL_100K) {
-                faceRecognize = FaceRecognize.createInstance(groupInfos[groupSpin.getSelectedItemPosition()].name, Mode.CLOUD);
+        if (mGroups != null) {
+            if (mGroups[groupSpin.getSelectedItemPosition()].modelType == ModelType.MODEL_100K) {
+                mFaceRecognize = FaceRecognize.createInstance(mGroups[groupSpin.getSelectedItemPosition()].name, Mode.CLOUD);
             } else {
-                faceRecognize = FaceRecognize.createInstance(groupInfos[groupSpin.getSelectedItemPosition()].name, Mode.TERMINAL);
+                mFaceRecognize = FaceRecognize.createInstance(mGroups[groupSpin.getSelectedItemPosition()].name, Mode.TERMINAL);
             }
         }
 
@@ -208,11 +213,11 @@ public class RecognizePhotoActivity extends Activity {
                     mImage.height = bitmap.getHeight();
                     mImage.width = bitmap.getWidth();
                     iv.setImageBitmap(bitmap);
-                    faces = faceDetect.detectPicture(mImage);
+                    faces = mFaceDetect.detectPicture(mImage);
                     if (faces != null && faces.length > 0) {
                         Log.d(TAG, "recognizePicture begin");
-                        if (faceRecognize != null) {
-                            results = faceRecognize.recognizePicture(mImage, faces);
+                        if (mFaceRecognize != null) {
+                            results = mFaceRecognize.recognizePicture(mImage, faces);
                         }
                         Log.d(TAG, "recognizePicture end");
                     }
