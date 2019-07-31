@@ -171,9 +171,9 @@ public class RegisterPhotoActivity extends Activity {
         if (mGroups != null) {
             for (int i = 0; i < mGroups.length; i++) {
                 if (mGroups[i].modelType == ModelType.MODEL_100K) {
-                    mGroupNames.add(mGroups[i].name + " |100K");
+                    mGroupNames.add(mGroups[i].name + " (100K)");
                 } else {
-                    mGroupNames.add(mGroups[i].name + " |3K");
+                    mGroupNames.add(mGroups[i].name + " (3K)");
                 }
             }
         }

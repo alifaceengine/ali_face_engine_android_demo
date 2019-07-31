@@ -148,12 +148,10 @@ public class RegisterCameraActivity extends Activity {
         mAllGroupNames = new ArrayList<String>();
         if (mAllGroups != null) {
             for (int i = 0; i < mAllGroups.length; i++) {
-                mAllGroupNames.add(mAllGroups[i].name);
-
                 if (mAllGroups[i].modelType == ModelType.MODEL_100K) {
-                    mAllGroupNames.add(mAllGroups[i].name + " |100K");
+                    mAllGroupNames.add(mAllGroups[i].name + " (100K)");
                 } else {
-                    mAllGroupNames.add(mAllGroups[i].name + " |3K");
+                    mAllGroupNames.add(mAllGroups[i].name + " (3K)");
                 }
             }
         }

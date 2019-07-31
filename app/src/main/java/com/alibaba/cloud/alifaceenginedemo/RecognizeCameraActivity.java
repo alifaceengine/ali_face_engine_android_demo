@@ -109,9 +109,9 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
             mAllGroupNames = new String[mAllGroups.length];
             for (int i = 0; i < mAllGroups.length; i++) {
                 if (mAllGroups[i].modelType == ModelType.MODEL_100K) {
-                    mAllGroupNames[i] = mAllGroups[i].name + " |100K";
+                    mAllGroupNames[i] = mAllGroups[i].name + " (100K)";
                 } else {
-                    mAllGroupNames[i] = mAllGroups[i].name + " |3K";
+                    mAllGroupNames[i] = mAllGroups[i].name + " (3K)";
                 }
             }
         }
@@ -198,6 +198,11 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
         mBtnForRegisterForRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (mBitmapForRegister == null) {
+                    Log.d(TAG, "mBtnForRegisterForRegister onClick cancel");
+                    return;
+                }
+
                 File file = new File(Utils.filePath + "linshi.jpg");
                 try {
                     FileOutputStream out = new FileOutputStream(file);
@@ -217,6 +222,7 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
                 finish();
             }
         });
+
         mBtnSwichCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -326,7 +332,7 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
             }
         }
 
-        if (TAG.equals(RegisterCameraActivity.RegisteredCameraTAG)) {
+        if (mCaller.equals(RegisterCameraActivity.RegisteredCameraTAG)) {
             if (faces == null) {
                 mBtnForRegisterForRegister.setEnabled(false);
                 mBtnForRegisterForRegister.setTextColor(ContextCompat.getColor(RecognizeCameraActivity.this, R.color.textColorN));
@@ -368,7 +374,7 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
             }
         }
 
-        if (TAG.equals(RegisterCameraActivity.RegisteredCameraTAG)) {
+        if (mCaller.equals(RegisterCameraActivity.RegisteredCameraTAG)) {
             if (mBitmapForRegister == null) {
                 mBitmapForRegister = Bitmap.createBitmap(720, 1280, Bitmap.Config.ARGB_8888);
             }
@@ -384,7 +390,7 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
         boolean mresult = false;
         String mText = this.getString(R.string.please_select_photo);
         RecognizeResult result = getRecognizeResult(face.trackId);
-        if (!TAG.equals(RegisterCameraActivity.RegisteredCameraTAG)) {
+        if (!mCaller.equals(RegisterCameraActivity.RegisteredCameraTAG)) {
             if (result != null) {
                 if (result.similarity >= 70.0) {
                     mresult = true;
