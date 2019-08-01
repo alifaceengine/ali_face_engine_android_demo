@@ -67,6 +67,7 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
     private FaceRegister mFaceRegister;
     private FaceRecognize mFaceRecognize;
     private FaceAttributeAnalyze mFaceAttributeAnalyze;
+    private int mFaceAttributeFlag = 0;
     private FaceRecognize.RecognizeVideoListener mRecognizeVideoListener;
     private RecognizeResult[] mRecognizeResults;
     private long mTotalCost = 0;
@@ -101,9 +102,11 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
 
         mFaceRegister = FaceRegister.createInstance();
         mFaceAttributeAnalyze = FaceAttributeAnalyze.createInstance(Mode.TERMINAL);
-        mFaceAttributeAnalyze.setFlag(FaceAttributeAnalyze.QUALITY
+        mFaceAttributeFlag = FaceAttributeAnalyze.QUALITY
+                | FaceAttributeAnalyze.LIVENESS
                 | FaceAttributeAnalyze.GENDER
-                | FaceAttributeAnalyze.AGE);
+                | FaceAttributeAnalyze.AGE;
+        mFaceAttributeAnalyze.setFlag(mFaceAttributeFlag);
 
         mFaceDetect = FaceDetect.createInstance(Mode.TERMINAL);
 
@@ -354,16 +357,27 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
 
         //在监听中保存result全局变量 跟face[]中的trackId进行比对
         if (faces != null && faces.length > 0) {
-            beginCost = System.currentTimeMillis();
-            if (mFaceRecognize != null) {
-                mFaceRecognize.recognizeVideo(image, faces);
+            List<Face> faceList = new ArrayList<Face>();
+            for (int i = 0; i < faces.length; i++) {
+                if ((mFaceAttributeFlag & FaceAttributeAnalyze.LIVENESS) == 0
+                        || faces[i].attribute.liveness.score >= 70) {
+                    faceList.add(faces[i]);
+                }
             }
-            mRecognizeCost = System.currentTimeMillis() - beginCost;
-            Log.d(TAG, "recognizePicture cost : " + mRecognizeCost);
 
-            if (mRecognizeResults != null) {
-                for (int i = 0; i < mRecognizeResults.length; i++) {
-                    Log.d(TAG, "onRecognized results[" + i + "] = " + mRecognizeResults[i]);
+            if (faceList.size() > 0) {
+                beginCost = System.currentTimeMillis();
+                if (mFaceRecognize != null) {
+                    Face[] faces1 = new Face[faceList.size()];
+                    mFaceRecognize.recognizeVideo(image, faceList.toArray(faces1));
+                }
+                mRecognizeCost = System.currentTimeMillis() - beginCost;
+                Log.d(TAG, "recognizePicture cost : " + mRecognizeCost);
+
+                if (mRecognizeResults != null) {
+                    for (int i = 0; i < mRecognizeResults.length; i++) {
+                        Log.d(TAG, "onRecognized results[" + i + "] = " + mRecognizeResults[i]);
+                    }
                 }
             }
         }
@@ -413,22 +427,22 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
             mText = "";
         }
 
-        if (face.attribute.liveness.score > 0) {
+        if ((mFaceAttributeFlag & FaceAttributeAnalyze.LIVENESS) > 0) {
             mText += ",liveness: " + face.attribute.liveness.score;
         }
-        if (face.attribute.age > 0) {
+        if ((mFaceAttributeFlag & FaceAttributeAnalyze.AGE) > 0) {
             mText += ",age: " + face.attribute.age;
         }
-        if (face.attribute.gender != Gender.GENGER_UNKNOWN) {
+        if ((mFaceAttributeFlag & FaceAttributeAnalyze.GENDER) > 0) {
             mText += ",gender: " + face.attribute.gender;
         }
-        if (face.attribute.expression != Expression.EXPRESSION_UNKOWN) {
+        if ((mFaceAttributeFlag & FaceAttributeAnalyze.EXPRESSION) > 0) {
             mText += ",expression: " + face.attribute.expression;
         }
-        if (face.attribute.quality.score > 0) {
+        if ((mFaceAttributeFlag & FaceAttributeAnalyze.QUALITY) > 0) {
             mText += ",quality: " + face.attribute.quality.score;
         }
-        if (face.attribute.glass != Glass.GLASS_UNKOWN) {
+        if ((mFaceAttributeFlag & FaceAttributeAnalyze.GLASS) > 0) {
             mText += ",glass: " + face.attribute.glass;
         }
         mText += ", ";
