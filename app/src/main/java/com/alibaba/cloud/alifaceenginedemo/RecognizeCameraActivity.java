@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
@@ -26,16 +27,12 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.alibaba.cloud.faceengine.Codec;
-import com.alibaba.cloud.faceengine.DetectParameter;
-import com.alibaba.cloud.faceengine.Expression;
 import com.alibaba.cloud.faceengine.Face;
 import com.alibaba.cloud.faceengine.FaceAttributeAnalyze;
 import com.alibaba.cloud.faceengine.FaceDetect;
 import com.alibaba.cloud.faceengine.FaceEngine;
 import com.alibaba.cloud.faceengine.FaceRecognize;
 import com.alibaba.cloud.faceengine.FaceRegister;
-import com.alibaba.cloud.faceengine.Gender;
-import com.alibaba.cloud.faceengine.Glass;
 import com.alibaba.cloud.faceengine.Group;
 import com.alibaba.cloud.faceengine.Image;
 import com.alibaba.cloud.faceengine.ImageRotation;
@@ -261,6 +258,11 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
 
     private void initData() {
         mCaller = getIntent().getStringExtra("TAG");
+        if (hasFrontFacingCamera()) {
+            mCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
+        } else if (hasBackFacingCamera()) {
+            mCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
+        }
     }
 
     private void init() {
@@ -616,5 +618,34 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
     protected void onDestroy() {
         super.onDestroy();
         mOrientationEventListener.disable();
+    }
+
+    public static int getSdkVersion() {
+        return android.os.Build.VERSION.SDK_INT;
+    }
+
+    private static boolean checkCameraFacing(final int facing) {
+        if (getSdkVersion() < Build.VERSION_CODES.GINGERBREAD) {
+            return false;
+        }
+        final int cameraCount = Camera.getNumberOfCameras();
+        Camera.CameraInfo info = new Camera.CameraInfo();
+        for (int i = 0; i < cameraCount; i++) {
+            Camera.getCameraInfo(i, info);
+            if (facing == info.facing) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean hasBackFacingCamera() {
+        final int CAMERA_FACING_BACK = 0;
+        return checkCameraFacing(CAMERA_FACING_BACK);
+    }
+
+    public static boolean hasFrontFacingCamera() {
+        final int CAMERA_FACING_BACK = 1;
+        return checkCameraFacing(CAMERA_FACING_BACK);
     }
 }

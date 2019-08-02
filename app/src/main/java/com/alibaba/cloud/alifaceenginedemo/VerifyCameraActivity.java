@@ -9,6 +9,7 @@ import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
@@ -26,7 +27,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.alibaba.cloud.faceengine.Codec;
-import com.alibaba.cloud.faceengine.DetectParameter;
 import com.alibaba.cloud.faceengine.Error;
 import com.alibaba.cloud.faceengine.Face;
 import com.alibaba.cloud.faceengine.FaceAttributeAnalyze;
@@ -139,6 +139,12 @@ public class VerifyCameraActivity extends Activity implements SurfaceHolder.Call
         mFaceAttributeAnalyze = FaceAttributeAnalyze.createInstance(Mode.TERMINAL);
         //mFaceAttributeAnalyze.setFlag(FaceAttributeAnalyze.QUALITY);
         mFaceVerify.setVerifyVideoListener(mVerifyVideoListener);
+
+        if (hasFrontFacingCamera()) {
+            mCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
+        } else if (hasBackFacingCamera()) {
+            mCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
+        }
     }
 
     @Override
@@ -476,5 +482,34 @@ public class VerifyCameraActivity extends Activity implements SurfaceHolder.Call
             mPreviewRotation = rotation;
             Log.v(TAG, "mPreviewRotation changed to : " + mPreviewRotation);
         }
+    }
+
+    public static int getSdkVersion() {
+        return android.os.Build.VERSION.SDK_INT;
+    }
+
+    private static boolean checkCameraFacing(final int facing) {
+        if (getSdkVersion() < Build.VERSION_CODES.GINGERBREAD) {
+            return false;
+        }
+        final int cameraCount = Camera.getNumberOfCameras();
+        Camera.CameraInfo info = new Camera.CameraInfo();
+        for (int i = 0; i < cameraCount; i++) {
+            Camera.getCameraInfo(i, info);
+            if (facing == info.facing) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean hasBackFacingCamera() {
+        final int CAMERA_FACING_BACK = 0;
+        return checkCameraFacing(CAMERA_FACING_BACK);
+    }
+
+    public static boolean hasFrontFacingCamera() {
+        final int CAMERA_FACING_BACK = 1;
+        return checkCameraFacing(CAMERA_FACING_BACK);
     }
 }
