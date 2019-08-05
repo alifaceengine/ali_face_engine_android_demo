@@ -54,8 +54,11 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
     private TextView mTitle;
     private SurfaceHolder mSurfaceHolder;
     private Camera mCamera;
+    private static int PREVIEW_WIDTH = 1280;
+    private static int PREVIEW_HEIGHT = 720;
     private int mCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
     private int mRotation = 0;
+    private boolean mSupportOrientation = false;
 
     private List<Group> mAllGroups;
     private List<String> mAllGroupNames;
@@ -186,7 +189,7 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
             zcLv.setVisibility(View.VISIBLE);
         }
         mSurfaceHolder = mSurfaceView.getHolder();
-        mSurfaceHolder.setFixedSize(1280, 720);
+        mSurfaceHolder.setFixedSize(PREVIEW_WIDTH, PREVIEW_HEIGHT);
         mSurfaceHolder.addCallback(this);
         mSurfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 
@@ -275,10 +278,18 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
         spLv = (LinearLayout) findViewById(R.id.activity_recognizecamera_lv);
         mBtnBack = (ImageButton) findViewById(R.id.currency_btn_back);
         mBtnSwichCamera = (ImageButton) findViewById(R.id.activity_recognizecamera_ib);
+
+        mFrameWidth = mFrame.getWidth();
+        mFrameHeight = mFrame.getHeight();
+
+        Log.d(TAG, "mFrame: " + mFrameWidth + "x" + mFrameHeight);
     }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
+        mFrameWidth = mFrame.getWidth();
+        mFrameHeight = mFrame.getHeight();
+        Log.d(TAG, "surfaceCreated, mFrame: " + mFrameWidth + "x" + mFrameHeight);
         openCamera(holder, mCameraId);
     }
 
@@ -294,7 +305,7 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
 
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
-        Log.d(TAG, "onPreviewFrame");
+        Log.d(TAG, "onPreviewFrame, mRotation: " + mRotation + " data.length:" + data.length);
         long onPreviewFrameTime = System.currentTimeMillis();
 
         if (mFaceViews != null) {
@@ -302,11 +313,12 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
                 mFrame.removeView(mFaceViews[j]);
             }
         }
+
         Image image = new Image();
         image.data = data;
         image.format = com.alibaba.cloud.faceengine.ImageFormat.NV21;
-        image.width = 1280;
-        image.height = 720;
+        image.width = PREVIEW_WIDTH;
+        image.height = PREVIEW_HEIGHT;
         image.rotation = ImageRotation.ANGLE_0;
 
         long beginCost = System.currentTimeMillis();
@@ -400,9 +412,13 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
 
         if (mCaller.equals(RegisterCameraActivity.RegisteredCameraTAG)) {
             if (mBitmapForRegister == null) {
-                mBitmapForRegister = Bitmap.createBitmap(720, 1280, Bitmap.Config.ARGB_8888);
+                if (mRotation == 0 || mRotation == 180) {
+                    mBitmapForRegister = Bitmap.createBitmap(PREVIEW_WIDTH, PREVIEW_HEIGHT, Bitmap.Config.ARGB_8888);
+                } else {
+                    mBitmapForRegister = Bitmap.createBitmap(PREVIEW_HEIGHT, PREVIEW_WIDTH, Bitmap.Config.ARGB_8888);
+                }
+                Utils.displayNV21ToBitmap(mBitmapForRegister, data, mBitmapForRegister.getWidth(), mBitmapForRegister.getHeight());
             }
-            Utils.displayNV21ToBitmap(mBitmapForRegister, data, 720, 1280);
         }
     }
 
@@ -454,8 +470,15 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
         mText += ",Total Cost: " + mTotalCost;
 
 
-        float mratewidth = ((float) mFrameWidth) / 720;
-        float mrateheight = ((float) mFrameHeight) / 1280;
+        float mratewidth = 0;
+        float mrateheight = 0;
+        if (mFrameWidth > mFrameHeight) {
+            mratewidth = ((float) mFrameWidth) / PREVIEW_WIDTH;
+            mrateheight = ((float) mFrameHeight) / PREVIEW_HEIGHT;
+        } else {
+            mratewidth = ((float) mFrameWidth) / PREVIEW_HEIGHT;
+            mrateheight = ((float) mFrameHeight) / PREVIEW_WIDTH;
+        }
         mFaceViews[i] = (FaceFrameView) mAddView(top * mrateheight, left * mratewidth, bottom * mrateheight, right * mratewidth, mresult, mText);
         ViewGroup.MarginLayoutParams params = new ViewGroup.MarginLayoutParams(mFaceViews[i].getLayoutParams());
 
@@ -466,16 +489,22 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
             } else if (mCameraId == Camera.CameraInfo.CAMERA_FACING_BACK) {
                 params.setMargins(Math.round(left * mratewidth), Math.round(top * mrateheight), Math.round((image.width - right) * mratewidth), Math.round(bottom * mrateheight));
             }
-
         } else if (mRotation == 0) {
             if (mCameraId == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-                params.setMargins(Math.round(mFrameWidth - bottom * mratewidth), Math.round(mFrameHeight - right * mrateheight), Math.round(mFrameWidth - top * mratewidth), Math.round(mFrameHeight - left * mrateheight));
-                mFaceViews[i].setRotation(90);
+                if (mSupportOrientation) {
+                    params.setMargins(Math.round(mFrameWidth - bottom * mratewidth), Math.round(mFrameHeight - right * mrateheight), Math.round(mFrameWidth - top * mratewidth), Math.round(mFrameHeight - left * mrateheight));
+                    mFaceViews[i].setRotation(90);
+                } else {
+                    params.setMargins(Math.round((image.width - right) * mratewidth), Math.round(top * mrateheight), Math.round(left * mratewidth), Math.round(bottom * mrateheight));
+                }
             } else if (mCameraId == Camera.CameraInfo.CAMERA_FACING_BACK) {
-                params.setMargins(Math.round(mFrameWidth - bottom * mratewidth), Math.round(left * mrateheight), Math.round(mFrameWidth - top * mratewidth), Math.round(right * mrateheight));
-                mFaceViews[i].setRotation(90);
+                if (mSupportOrientation) {
+                    params.setMargins(Math.round(mFrameWidth - bottom * mratewidth), Math.round(left * mrateheight), Math.round(mFrameWidth - top * mratewidth), Math.round(right * mrateheight));
+                    mFaceViews[i].setRotation(90);
+                } else {
+                    params.setMargins(Math.round(left * mratewidth), Math.round(top * mrateheight), Math.round((image.width - right) * mratewidth), Math.round(bottom * mrateheight));
+                }
             }
-
         } else if (mRotation == 180) {
             if (mCameraId == Camera.CameraInfo.CAMERA_FACING_FRONT) {
                 params.setMargins(Math.round(top * mratewidth), Math.round(left * mrateheight), Math.round(bottom * mratewidth), Math.round(right * mrateheight));
@@ -484,7 +513,6 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
                 params.setMargins(Math.round(top * mratewidth), Math.round(mFrameHeight - right * mrateheight), Math.round(bottom * mratewidth), Math.round(mFrameHeight - left * mrateheight));
                 mFaceViews[i].setRotation(270);
             }
-
         } else {
             if (mCameraId == Camera.CameraInfo.CAMERA_FACING_FRONT) {
                 params.setMargins(Math.round((image.width - right) * mratewidth), Math.round(top * mrateheight), Math.round(left * mratewidth), Math.round(bottom * mrateheight));
@@ -492,7 +520,6 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
                 params.setMargins(Math.round((image.width - right) * mratewidth), Math.round((image.height - bottom) * mrateheight), Math.round(left * mratewidth), Math.round((image.height - top) * mrateheight));
                 mFaceViews[i].setRotation(180);
             }
-
         }
 
         FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(params);
@@ -504,11 +531,11 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
         mCamera = Camera.open(cameraId);
         Camera.Parameters parameters = mCamera.getParameters();
         //设置摄像机方向
-        setCameraDisplayOrientation(this, Camera.CameraInfo.CAMERA_FACING_FRONT, mCamera);
+        setCameraDisplayOrientation(this, cameraId, mCamera);
         //预览图像尺寸
         Log.e(TAG, "perview-size-values:" + parameters.get("preview-size-values"));
         Log.e(TAG, "preview-format-values:" + parameters.get("preview-format-values"));
-        parameters.setPreviewSize(1280, 720);
+        parameters.setPreviewSize(PREVIEW_WIDTH, PREVIEW_HEIGHT);
         //设置图像格式
         parameters.setPreviewFormat(ImageFormat.NV21);
         mCamera.setParameters(parameters);
@@ -522,6 +549,7 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
         mOrientationEventListener = new OrientationEventListener(RecognizeCameraActivity.this) {
             @Override
             public void onOrientationChanged(int orientation) {
+                mSupportOrientation = true;
                 OrientationChanged(orientation);
                 mFrameWidth = mFrame.getWidth();
                 mFrameHeight = mFrame.getHeight();
