@@ -100,6 +100,7 @@ public class RegisterCameraActivity extends Activity {
                         Toast.makeText(RegisterCameraActivity.this, RegisterCameraActivity.this.getString(R.string.please_fill), Toast.LENGTH_SHORT).show();
                     }
                 } else {
+                    Log.d(TAG, "register begin");
                     Person person = new Person();
                     person.name = name;
                     status = mFaceRegister.addPerson(mAllGroups.get(spinner.getSelectedItemPosition()).id, person);
@@ -116,6 +117,7 @@ public class RegisterCameraActivity extends Activity {
                         feature.name = edName.getText().toString();
                         feature.feature = Feature;
                         int result = mFaceRegister.addFeature(person.id, feature);
+                        Log.d(TAG, "register end");
                         if (result == 0) {
                             Toast.makeText(RegisterCameraActivity.this, RegisterCameraActivity.this.getString(R.string.add_success), Toast.LENGTH_LONG).show();
                         } else {

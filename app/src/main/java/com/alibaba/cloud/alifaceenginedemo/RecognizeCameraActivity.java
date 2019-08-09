@@ -57,7 +57,7 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
     private static int PREVIEW_WIDTH = 1280;
     private static int PREVIEW_HEIGHT = 720;
     private int mCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
-    private int mRotation = 0;
+    private int mPreviewRotation = 0;
     private boolean mSupportOrientation = false;
 
     private List<Group> mAllGroups;
@@ -305,7 +305,7 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
 
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
-        Log.d(TAG, "onPreviewFrame, mRotation: " + mRotation + " data.length:" + data.length);
+        Log.d(TAG, "onPreviewFrame, mPreviewRotation: " + mPreviewRotation + " data.length:" + data.length);
         long onPreviewFrameTime = System.currentTimeMillis();
 
         if (mFaceViews != null) {
@@ -322,14 +322,14 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
         image.rotation = ImageRotation.ANGLE_0;
 
         long beginCost = System.currentTimeMillis();
-        if (mRotation == 270) {
+        if (mPreviewRotation == 270) {
             Codec.nv21Rotate270InPlace(image.data, image.width, image.height);
             int width = image.width;
             image.width = image.height;
             image.height = width;
-        } else if (mRotation == 180) {
+        } else if (mPreviewRotation == 180) {
             Codec.nv21Rotate180InPlace(image.data, image.width, image.height);
-        } else if (mRotation == 90) {
+        } else if (mPreviewRotation == 90) {
             Codec.nv21Rotate90InPlace(image.data, image.width, image.height);
             int width = image.width;
             image.width = image.height;
@@ -412,7 +412,7 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
 
         if (mCaller.equals(RegisterCameraActivity.RegisteredCameraTAG)) {
             if (mBitmapForRegister == null) {
-                if (mRotation == 0 || mRotation == 180) {
+                if (mPreviewRotation == 0 || mPreviewRotation == 180) {
                     mBitmapForRegister = Bitmap.createBitmap(PREVIEW_WIDTH, PREVIEW_HEIGHT, Bitmap.Config.ARGB_8888);
                 } else {
                     mBitmapForRegister = Bitmap.createBitmap(PREVIEW_HEIGHT, PREVIEW_WIDTH, Bitmap.Config.ARGB_8888);
@@ -479,17 +479,17 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
             mratewidth = ((float) mFrameWidth) / PREVIEW_HEIGHT;
             mrateheight = ((float) mFrameHeight) / PREVIEW_WIDTH;
         }
-        mFaceViews[i] = (FaceFrameView) mAddView(top * mrateheight, left * mratewidth, bottom * mrateheight, right * mratewidth, mresult, mText);
+        mFaceViews[i] = (FaceFrameView) createFaceFrameView(top * mrateheight, left * mratewidth, bottom * mrateheight, right * mratewidth, mresult, mText);
         ViewGroup.MarginLayoutParams params = new ViewGroup.MarginLayoutParams(mFaceViews[i].getLayoutParams());
 
-        if (mRotation == 90) {
+        if (mPreviewRotation == 90) {
             if (mCameraId == Camera.CameraInfo.CAMERA_FACING_FRONT) {
                 params.setMargins(Math.round(left * mratewidth), Math.round((image.height - bottom) * mrateheight), Math.round((image.width - right) * mratewidth), Math.round((image.height - top) * mrateheight));
                 mFaceViews[i].setRotation(180);
             } else if (mCameraId == Camera.CameraInfo.CAMERA_FACING_BACK) {
                 params.setMargins(Math.round(left * mratewidth), Math.round(top * mrateheight), Math.round((image.width - right) * mratewidth), Math.round(bottom * mrateheight));
             }
-        } else if (mRotation == 0) {
+        } else if (mPreviewRotation == 0) {
             if (mCameraId == Camera.CameraInfo.CAMERA_FACING_FRONT) {
                 if (mSupportOrientation) {
                     params.setMargins(Math.round(mFrameWidth - bottom * mratewidth), Math.round(mFrameHeight - right * mrateheight), Math.round(mFrameWidth - top * mratewidth), Math.round(mFrameHeight - left * mrateheight));
@@ -505,7 +505,7 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
                     params.setMargins(Math.round(left * mratewidth), Math.round(top * mrateheight), Math.round((image.width - right) * mratewidth), Math.round(bottom * mrateheight));
                 }
             }
-        } else if (mRotation == 180) {
+        } else if (mPreviewRotation == 180) {
             if (mCameraId == Camera.CameraInfo.CAMERA_FACING_FRONT) {
                 params.setMargins(Math.round(top * mratewidth), Math.round(left * mrateheight), Math.round(bottom * mratewidth), Math.round(right * mrateheight));
                 mFaceViews[i].setRotation(270);
@@ -621,7 +621,7 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
         return null;
     }
 
-    private View mAddView(float top, float left, float bottom, float right, boolean result, String text) {
+    private View createFaceFrameView(float top, float left, float bottom, float right, boolean result, String text) {
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(Math.round(right - left), Math.round(bottom - top));
         FaceFrameView view = new FaceFrameView(RecognizeCameraActivity.this, Math.round(top), Math.round(bottom), Math.round(left), Math.round(right), result, text);
         view.setLayoutParams(lp);
@@ -636,9 +636,9 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
         orientation = (orientation + 45) / 90 * 90;
         // Reverse device orientation for front-facing cameras
         if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-            mRotation = (info.orientation - orientation + 360) % 360;
+            mPreviewRotation = (info.orientation - orientation + 360) % 360;
         } else {  // back-facing camera
-            mRotation = (info.orientation + orientation) % 360;
+            mPreviewRotation = (info.orientation + orientation) % 360;
         }
     }
 
