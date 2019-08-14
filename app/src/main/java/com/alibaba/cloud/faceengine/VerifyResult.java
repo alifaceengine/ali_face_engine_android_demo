@@ -7,6 +7,7 @@ package com.alibaba.cloud.faceengine;
 public class VerifyResult {
     public int trackId;
     public float similarity;
+    public String feature;
 
     @Override
     public String toString() {
