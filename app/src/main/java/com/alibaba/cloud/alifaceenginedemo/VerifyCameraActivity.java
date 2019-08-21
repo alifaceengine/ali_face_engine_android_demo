@@ -31,10 +31,13 @@ import com.alibaba.cloud.faceengine.Error;
 import com.alibaba.cloud.faceengine.Face;
 import com.alibaba.cloud.faceengine.FaceAttributeAnalyze;
 import com.alibaba.cloud.faceengine.FaceDetect;
+import com.alibaba.cloud.faceengine.FaceRegister;
 import com.alibaba.cloud.faceengine.FaceVerify;
+import com.alibaba.cloud.faceengine.FeatureExtract;
 import com.alibaba.cloud.faceengine.Image;
 import com.alibaba.cloud.faceengine.ImageRotation;
 import com.alibaba.cloud.faceengine.Mode;
+import com.alibaba.cloud.faceengine.ModelType;
 import com.alibaba.cloud.faceengine.VerifyResult;
 
 import java.io.FileNotFoundException;
@@ -60,6 +63,7 @@ public class VerifyCameraActivity extends Activity implements SurfaceHolder.Call
 
     private FaceDetect mFaceDetect;
     private FaceVerify mFaceVerify;
+    private FeatureExtract mFeatureExtract;
     private int mFaceAttributeFlag = 0;
     private FaceAttributeAnalyze mFaceAttributeAnalyze;
     private FaceVerify.VerifyVideoListener mVerifyVideoListener;
@@ -146,6 +150,7 @@ public class VerifyCameraActivity extends Activity implements SurfaceHolder.Call
 
         mFaceDetect = FaceDetect.createInstance(Mode.TERMINAL);
         mFaceVerify = FaceVerify.createInstance(Mode.TERMINAL);
+        mFeatureExtract = FeatureExtract.createInstance(ModelType.MODEL_3K, Mode.TERMINAL);
         mFaceAttributeAnalyze = FaceAttributeAnalyze.createInstance(Mode.TERMINAL);
         mFaceAttributeFlag = FaceAttributeAnalyze.QUALITY
                 | FaceAttributeAnalyze.LIVENESS;
@@ -181,6 +186,7 @@ public class VerifyCameraActivity extends Activity implements SurfaceHolder.Call
 
         FaceDetect.deleteInstance(mFaceDetect);
         FaceVerify.deleteInstance(mFaceVerify);
+        FeatureExtract.deleteInstance(mFeatureExtract);
         FaceAttributeAnalyze.deleteInstance(mFaceAttributeAnalyze);
     }
 
@@ -529,9 +535,24 @@ public class VerifyCameraActivity extends Activity implements SurfaceHolder.Call
         if (faces == null) {
             Log.d(TAG, "registerFace fail: detectPicture faces:null");
         } else {
+
             Log.d(TAG, "detectPicture :" + faces.length);
-            int status = mFaceVerify.registerFace(image, faces[0]);
-            Log.d(TAG, "registerFace status: " + status);
+
+
+            boolean registerFeature = false;
+            int status = Error.FAILED;
+            if (registerFeature) {
+                String feature;
+                if (mFeatureExtract != null) {
+                    feature = mFeatureExtract.extractFeature(image, faces[0]);
+                    status = mFaceVerify.registerFeature(feature);
+                } else {
+                    Log.e(TAG, "registerFace fail, mFeatureExtract is null");
+                }
+            } else {
+                status = mFaceVerify.registerFace(image, faces[0]);
+                Log.d(TAG, "registerFace status: " + status);
+            }
 
             if (status == Error.OK) {
                 mRegisteredPhotoView.setImageBitmap(bitmap);

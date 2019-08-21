@@ -46,6 +46,10 @@ public class FaceVerify {
         return FaceVerifyJNI.registerFace(mContext, image, face);
     }
 
+    public int registerFeature(String feature) {
+        return FaceVerifyJNI.registerFeature(mContext, feature);
+    }
+
     public VerifyResult[] verifyPicture(Image image1, Face image1Face, Image image2, Face image2Faces[]) {
         return FaceVerifyJNI.verifyPicture(mContext, image1, image1Face, image2, image2Faces);
     }

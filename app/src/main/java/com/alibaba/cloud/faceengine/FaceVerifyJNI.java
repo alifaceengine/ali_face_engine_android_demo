@@ -13,6 +13,8 @@ class FaceVerifyJNI {
 
     public static native int registerFace(long context, Image image, Face face);
 
+    public static native int registerFeature(long context, String feature);
+
     public static native VerifyResult[] verifyPicture(long context, Image image1, Face image1Face, Image image2, Face image2Faces[]);
 
     static {
