@@ -8,6 +8,7 @@ public class VerifyResult {
     public int trackId;
     public float similarity;
     public String feature;
+    public Face face;
 
     @Override
     public String toString() {

@@ -11,6 +11,7 @@ public class RecognizeResult {
     public String personTag;
     public float similarity;
     public String feature;
+    public Face face;
 
     @Override
     public String toString() {
