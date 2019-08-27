@@ -27,6 +27,7 @@ import com.alibaba.cloud.faceengine.FaceEngine;
 import com.alibaba.cloud.faceengine.FaceRecognize;
 import com.alibaba.cloud.faceengine.FaceRegister;
 import com.alibaba.cloud.faceengine.Feature;
+import com.alibaba.cloud.faceengine.FeatureExtract;
 import com.alibaba.cloud.faceengine.Group;
 import com.alibaba.cloud.faceengine.Image;
 import com.alibaba.cloud.faceengine.ImageFormat;
@@ -49,13 +50,17 @@ public class RegisterCameraActivity extends Activity {
     private ImageView ivPhoto;
     private Button btn;
     private FaceRegister mFaceRegister;
+    private FeatureExtract mFeatureExtract_3K;
+    private FeatureExtract mFeatureExtract_100K;
+    private FaceDetect mFaceDetect;
+
     private List<Group> mAllGroups;
     private List<String> mAllGroupNames;
     private TextView title;
     private static final int ALBUM_OK = 0;
     private Bitmap bitmap;
     private int status;
-    private FaceDetect faceDetect;
+
     private Face[] faces;
     public static String RegisteredCameraTAG = "AFE_registered";
     private String filePath;
@@ -69,6 +74,16 @@ public class RegisterCameraActivity extends Activity {
         initData();
         init();
         initView();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        FeatureExtract.deleteInstance(mFeatureExtract_3K);
+        FeatureExtract.deleteInstance(mFeatureExtract_100K);
+        FaceRegister.deleteInstance(mFaceRegister);
+        FaceDetect.deleteInstance(mFaceDetect);
     }
 
     private void initView() {
@@ -111,11 +126,35 @@ public class RegisterCameraActivity extends Activity {
                         image.rotation = ImageRotation.ANGLE_0;
                         image.height = bitmap.getHeight();
                         image.width = bitmap.getWidth();
-                        faces = faceDetect.detectPicture(image);
-                        String Feature = mFaceRegister.extractFeature(image, faces[0], mAllGroups.get(spinner.getSelectedItemPosition()).modelType);
+                        faces = mFaceDetect.detectPicture(image);
+
+                        if (faces == null || faces.length == 0) {
+                            Log.d(TAG, "detectPicture no face");
+                            Toast.makeText(RegisterCameraActivity.this,
+                                    RegisterCameraActivity.this.getString(R.string.no_detected),
+                                    Toast.LENGTH_LONG).show();
+                            return;
+                        }
+
+                        String featureStr = "";
+                        if (mAllGroups.get(spinner.getSelectedItemPosition()).modelType == ModelType.MODEL_100K) {
+                            featureStr = mFeatureExtract_100K.extractFeature(image, faces[0]);
+                        } else {
+                            featureStr = mFeatureExtract_3K.extractFeature(image, faces[0]);
+                        }
+
+                        if (featureStr == null || featureStr.length() == 0) {
+                            Log.d(TAG, "extractFeature fail");
+                            Toast.makeText(RegisterCameraActivity.this,
+                                    RegisterCameraActivity.this.getString(R.string.extract_feature) +
+                                            RegisterCameraActivity.this.getString(R.string.fail),
+                                    Toast.LENGTH_LONG).show();
+                            return;
+                        }
+
                         Feature feature = new Feature();
                         feature.name = edName.getText().toString();
-                        feature.feature = Feature;
+                        feature.feature = featureStr;
                         int result = mFaceRegister.addFeature(person.id, feature);
                         Log.d(TAG, "register end");
                         if (result == 0) {
@@ -146,7 +185,10 @@ public class RegisterCameraActivity extends Activity {
 
     private void initData() {
         mFaceRegister = FaceRegister.createInstance();
-        faceDetect = FaceDetect.createInstance(Mode.TERMINAL);
+        mFaceDetect = FaceDetect.createInstance(Mode.TERMINAL);
+        mFeatureExtract_3K = FeatureExtract.createInstance(ModelType.MODEL_3K, Mode.TERMINAL);
+        mFeatureExtract_100K = FeatureExtract.createInstance(ModelType.MODEL_100K, Mode.CLOUD);
+
         mAllGroups = new ArrayList<Group>();
         Group[] allGroups = mFaceRegister.getAllGroups();
         mAllGroupNames = new ArrayList<String>();

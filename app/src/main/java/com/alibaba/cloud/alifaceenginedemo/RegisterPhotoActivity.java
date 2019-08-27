@@ -27,6 +27,7 @@ import com.alibaba.cloud.faceengine.FaceDetect;
 import com.alibaba.cloud.faceengine.FaceEngine;
 import com.alibaba.cloud.faceengine.FaceRegister;
 import com.alibaba.cloud.faceengine.Feature;
+import com.alibaba.cloud.faceengine.FeatureExtract;
 import com.alibaba.cloud.faceengine.Group;
 import com.alibaba.cloud.faceengine.Image;
 import com.alibaba.cloud.faceengine.ImageFormat;
@@ -47,6 +48,8 @@ public class RegisterPhotoActivity extends Activity {
     private ImageView mPhotoCtrl;
     private Button mBtnAdd;
     private FaceRegister mFaceRegister;
+    private FeatureExtract mFeatureExtract_3K;
+    private FeatureExtract mFeatureExtract_100K;
     private List<Group> mAllGroups;
     private List<String> mGroupNames;
     private TextView mTitle;
@@ -63,6 +66,16 @@ public class RegisterPhotoActivity extends Activity {
         initData();
         init();
         initView();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        FeatureExtract.deleteInstance(mFeatureExtract_3K);
+        FeatureExtract.deleteInstance(mFeatureExtract_100K);
+        FaceRegister.deleteInstance(mFaceRegister);
+        FaceDetect.deleteInstance(mFaceDetect);
     }
 
     private void initView() {
@@ -127,7 +140,13 @@ public class RegisterPhotoActivity extends Activity {
                 }
                 Log.d(TAG, "detectPicture faces count :" + faces.length);
 
-                String featureStr = mFaceRegister.extractFeature(image, faces[0], mAllGroups.get(spinner.getSelectedItemPosition()).modelType);
+                String featureStr = "";
+                if (mAllGroups.get(spinner.getSelectedItemPosition()).modelType == ModelType.MODEL_100K) {
+                    featureStr = mFeatureExtract_100K.extractFeature(image, faces[0]);
+                } else {
+                    featureStr = mFeatureExtract_3K.extractFeature(image, faces[0]);
+                }
+
                 if (featureStr == null || featureStr.length() == 0) {
                     Log.d(TAG, "extractFeature fail");
                     Toast.makeText(RegisterPhotoActivity.this,
@@ -166,6 +185,8 @@ public class RegisterPhotoActivity extends Activity {
 
     private void initData() {
         mFaceRegister = FaceRegister.createInstance();
+        mFeatureExtract_3K = FeatureExtract.createInstance(ModelType.MODEL_3K, Mode.TERMINAL);
+        mFeatureExtract_100K = FeatureExtract.createInstance(ModelType.MODEL_100K, Mode.CLOUD);
         mFaceDetect = FaceDetect.createInstance(Mode.TERMINAL);
 
         mAllGroups = new ArrayList<Group>();
