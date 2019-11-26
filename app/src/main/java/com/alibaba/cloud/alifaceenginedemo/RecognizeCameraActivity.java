@@ -383,7 +383,7 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
                 beginCost = System.currentTimeMillis();
                 if (mFaceRecognize != null) {
                     Face[] faces1 = new Face[faceList.size()];
-                    mFaceRecognize.recognizeVideo(image, faceList.toArray(faces1));
+                    mRecognizeResults = mFaceRecognize.recognizePicture(image, faceList.toArray(faces1));
                 }
                 mRecognizeCost = System.currentTimeMillis() - beginCost;
                 Log.d(TAG, "recognizePicture cost : " + mRecognizeCost);
@@ -445,6 +445,7 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
             mText = "";
         }
 
+        mText += ",trackId: " + face.trackId;
         if ((mFaceAttributeFlag & FaceAttributeAnalyze.LIVENESS) > 0) {
             mText += ",liveness: " + face.attribute.liveness.score;
         }

@@ -17,6 +17,10 @@ public class FaceEngine {
         return AliFaceEngineJNI.authorize(key);
     }
 
+    public static int unInitialize() {
+        return AliFaceEngineJNI.unInitialize();
+    }
+
     public static boolean isAuthorized() {
         return AliFaceEngineJNI.isAuthorized();
     }

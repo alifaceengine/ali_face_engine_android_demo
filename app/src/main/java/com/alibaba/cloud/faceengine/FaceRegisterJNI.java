@@ -11,7 +11,13 @@ class FaceRegisterJNI {
 
     public static native int createGroup(long context, Group group);
 
+    public static native int registerPicture(long context, String groupId, Image image, Person person, String featureName);
+
+    public static native int registerPicture2(long context, String groupName, Image image, Person person, String featureName);
+
     public static native int deleteGroup(long context, String groupId);
+
+    public static native int deleteGroupByName(long context, String groupName);
 
     public static native boolean isGroupExist(long context, String groupName);
 
@@ -26,6 +32,10 @@ class FaceRegisterJNI {
     public static native int addPerson(long context, String groupId, Person person);
 
     public static native int deletePerson(long context, String personId);
+
+    public static native int deletePersonByName(long context, String groupId, String personName);
+
+    public static native int deletePersonByName2(long context, String groupName, String personName);
 
     public static native int deleteAllPersons(long context, String groupId);
 
@@ -44,6 +54,12 @@ class FaceRegisterJNI {
     public static native int addFeature(long context, String personId, Feature feature);
 
     public static native int deleteFeature(long context, String featureId);
+
+    public static native int deleteFeatureByName(long context, String personId, String featureName);
+
+    public static native int deleteFeatureByName2(long context, String groupId, String personName, String featureName);
+
+    public static native int deleteFeatureByName3(long context, String groupName, String personName, String featureName);
 
     public static native int deleteAllFeatures(long context, String personId);
 

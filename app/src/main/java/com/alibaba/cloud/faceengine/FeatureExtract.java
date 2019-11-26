@@ -20,6 +20,16 @@ public class FeatureExtract {
     }
 
     public String extractFeature(Image image, Face face) {
+        if (image == null || image.data == null) {
+            return null;
+        }
+
+        if (Codec.isJpeg(image)) {
+            image.data = Codec.jpegToBmp(image.data);
+            if (image.data == null) {
+                return null;
+            }
+        }
         return FeatureExtractJNI.extractFeature(mContext, image, face);
     }
 

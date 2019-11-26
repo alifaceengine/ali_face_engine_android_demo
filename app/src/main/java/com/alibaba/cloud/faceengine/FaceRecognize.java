@@ -44,6 +44,16 @@ public class FaceRecognize {
     }
 
     public RecognizeResult[] recognizePicture(Image image, Face[] faces) {
+        if (image == null || image.data == null) {
+            return null;
+        }
+
+        if (Codec.isJpeg(image)) {
+            image.data = Codec.jpegToBmp(image.data);
+            if (image.data == null) {
+                return null;
+            }
+        }
         return FaceRecognizeJNI.recognizePicture(mContext, image, faces);
     }
 

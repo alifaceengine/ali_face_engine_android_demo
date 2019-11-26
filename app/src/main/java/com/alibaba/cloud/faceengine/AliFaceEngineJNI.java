@@ -6,6 +6,8 @@ public class AliFaceEngineJNI {
 
     public static native int authorize(String key);
 
+    public static native int unInitialize();
+
     public static native boolean isAuthorized();
 
     public static native boolean supportCloud();

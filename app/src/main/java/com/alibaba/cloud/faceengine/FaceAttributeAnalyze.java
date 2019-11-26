@@ -43,10 +43,30 @@ public class FaceAttributeAnalyze {
     }
 
     public int analyze(Image image, Face face) {
+        if (image == null || image.data == null) {
+            return Error.FAILED;
+        }
+
+        if (Codec.isJpeg(image)) {
+            image.data = Codec.jpegToBmp(image.data);
+            if (image.data == null) {
+                return Error.FAILED;
+            }
+        }
         return FaceAttributeAnalyzeJNI.analyze(mContext, image, face);
     }
 
     public int analyze(Image image, Face[] faces) {
+        if (image == null || image.data == null) {
+            return Error.FAILED;
+        }
+
+        if (Codec.isJpeg(image)) {
+            image.data = Codec.jpegToBmp(image.data);
+            if (image.data == null) {
+                return Error.FAILED;
+            }
+        }
         return FaceAttributeAnalyzeJNI.analyze2(mContext, image, faces);
     }
 

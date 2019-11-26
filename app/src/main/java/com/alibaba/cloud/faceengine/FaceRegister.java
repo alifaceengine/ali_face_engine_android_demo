@@ -28,8 +28,40 @@ public class FaceRegister {
         return FaceRegisterJNI.createGroup(mContext, group);
     }
 
+    public int registerPicture(String groupId, Image image, Person person, String featureName) {
+        if (image == null || image.data == null) {
+            return Error.FAILED;
+        }
+
+        if (Codec.isJpeg(image)) {
+            image.data = Codec.jpegToBmp(image.data);
+            if (image.data == null) {
+                return Error.FAILED;
+            }
+        }
+        return FaceRegisterJNI.registerPicture(mContext, groupId, image, person, featureName);
+    }
+
+    public int registerPicture2(String groupName, Image image, Person person, String featureName) {
+        if (image == null || image.data == null) {
+            return Error.FAILED;
+        }
+
+        if (Codec.isJpeg(image)) {
+            image.data = Codec.jpegToBmp(image.data);
+            if (image.data == null) {
+                return Error.FAILED;
+            }
+        }
+        return FaceRegisterJNI.registerPicture2(mContext, groupName, image, person, featureName);
+    }
+
     public int deleteGroup(String groupId) {
         return FaceRegisterJNI.deleteGroup(mContext, groupId);
+    }
+
+    public int deleteGroupByName(String groupName) {
+        return FaceRegisterJNI.deleteGroupByName(mContext, groupName);
     }
 
     public boolean isGroupExist(String groupName) {
@@ -58,6 +90,14 @@ public class FaceRegister {
 
     public int deletePerson(String personId) {
         return FaceRegisterJNI.deletePerson(mContext, personId);
+    }
+
+    public int deletePersonByName(String groupId, String personName) {
+        return FaceRegisterJNI.deletePersonByName(mContext, groupId, personName);
+    }
+
+    public int deletePersonByName2(String groupName, String personName) {
+        return FaceRegisterJNI.deletePersonByName2(mContext, groupName, personName);
     }
 
     public int deleteAllPersons(String groupId) {
@@ -96,6 +136,18 @@ public class FaceRegister {
         return FaceRegisterJNI.deleteFeature(mContext, featureId);
     }
 
+    public int deleteFeatureByName(String personId, String featureName) {
+        return FaceRegisterJNI.deleteFeatureByName(mContext, personId, featureName);
+    }
+
+    public int deleteFeatureByName2(String groupId, String personName, String featureName) {
+        return FaceRegisterJNI.deleteFeatureByName2(mContext, groupId, personName, featureName);
+    }
+
+    public int deleteFeatureByName3(String groupName, String personName, String featureName) {
+        return FaceRegisterJNI.deleteFeatureByName3(mContext, groupName, personName, featureName);
+    }
+
     public int deleteAllFeatures(String personId) {
         return FaceRegisterJNI.deleteAllFeatures(mContext, personId);
     }
@@ -109,6 +161,16 @@ public class FaceRegister {
     }
 
     public String extractFeature(Image image, Face face, int modelType) {
+        if (image == null || image.data == null) {
+            return null;
+        }
+
+        if (Codec.isJpeg(image)) {
+            image.data = Codec.jpegToBmp(image.data);
+            if (image.data == null) {
+                return null;
+            }
+        }
         return FaceRegisterJNI.extractFeature(mContext, image, face, modelType);
     }
 
