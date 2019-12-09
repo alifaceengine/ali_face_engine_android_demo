@@ -26,7 +26,7 @@ public class FaceRecognizeNoDB {
     }
 
     public int deletePerson(String personId) {
-        return FaceRecognizeNoDBJNI.addPerson(mContext, personId);
+        return FaceRecognizeNoDBJNI.deletePerson(mContext, personId);
     }
 
     public int deleteManyPersons(String[] personIds) {
