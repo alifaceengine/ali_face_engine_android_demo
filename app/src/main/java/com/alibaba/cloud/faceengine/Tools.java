@@ -12,4 +12,8 @@ public class Tools {
     public static void drawFaceRect(Image image, Face face, int color) {
         ToolsJNI.drawFaceRect(image, face, color);
     }
+
+    public static int testPerformance() {
+        return ToolsJNI.testPerformance();
+    }
 }

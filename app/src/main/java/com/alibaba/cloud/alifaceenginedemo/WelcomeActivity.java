@@ -48,7 +48,7 @@ public class WelcomeActivity extends Activity implements View.OnClickListener {
         Log.d(TAG, "FaceEngine.getVersion:" + FaceEngine.getVersion());
 
         if (!SPUtils.hasAuthKey(this)) {
-            SPUtils.setAuthKey(this, "eyJ2ZW5kb3JJZCI6ImNlc2hpX3ZlbmRvciIsInJvbGUiOjIsImNvZGUiOiJBQzVGRDAwOUEwRDJCRjg5QzZEMzUyOUVDQ0NCNDI4MCIsImV4cGlyZSI6IjIwMjAwMzMxIiwidHlwZSI6MX0=");
+            SPUtils.setAuthKey(this, "DVxKR19dWQgCA1FXSVkKFA4XAxcSBEtFEEIXAFkBHRtZTFldXFBeXlZTEVZKXUZAV0UJE04UHx1CHgEZFxQXEhgZOgRICwoMAEJQBkJZUQlFXFwOEhgDSVFGUwgFAgEdUF5YGF5WWwBEQVpQFhAcThEHDBwKSjJMVlFhU1tYUlwUAVwDFFVdU1cJSFBeDU9BAV1OEUZXEhYEShUHWFBBTEcWGgYFB1BcBFE=");
         }
 
         int status = FaceEngine.authorize(SPUtils.getAuthKey(this));
@@ -67,7 +67,7 @@ public class WelcomeActivity extends Activity implements View.OnClickListener {
         boolean useCloud = (Boolean) SPUtils.get(this, SPUtils.KEY_USE_CLOUD, SPUtils.DEFAULT_VALUE_USE_CLOUD);
         if (useCloud) {
             FaceEngine.setCloudAddr(SPUtils.get(this, SPUtils.KEY_CLOUD_IP, "101.132.89.177").toString(),
-                    Integer.parseInt(SPUtils.get(this, SPUtils.KEY_CLOUD_PORT, "15004").toString()));
+                    Integer.parseInt(SPUtils.get(this, SPUtils.KEY_CLOUD_PORT, "15005").toString()));
             FaceEngine.setCloudLoginAccount(SPUtils.get(this, SPUtils.KEY_CLOUD_USERNAME, "user_register").toString(),
                     SPUtils.get(this, SPUtils.KEY_CLOUD_USERPSW, "666666").toString());
         } else {

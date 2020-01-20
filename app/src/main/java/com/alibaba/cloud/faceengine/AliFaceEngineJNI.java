@@ -12,6 +12,8 @@ public class AliFaceEngineJNI {
 
     public static native boolean supportCloud();
 
+    public static native int getGPUCount();
+
     public static native String getVendorId();
 
     public static native void setCloudAddr(String ip, int port);

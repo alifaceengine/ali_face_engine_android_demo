@@ -60,7 +60,7 @@ public class SettingDialog extends Dialog implements RadioGroup.OnCheckedChangeL
         if (useCloud) {
             mCtrlUseCloud.setChecked(true);
             mCtrlIP.setText(SPUtils.get(mContext, SPUtils.KEY_CLOUD_IP, "101.132.89.177").toString());
-            mCtrlPort.setText(SPUtils.get(mContext, SPUtils.KEY_CLOUD_PORT, "15004").toString());
+            mCtrlPort.setText(SPUtils.get(mContext, SPUtils.KEY_CLOUD_PORT, "15005").toString());
             mCtrlUserName.setText(SPUtils.get(mContext, SPUtils.KEY_CLOUD_USERNAME, "user_register").toString());
             mCtrlUserPsw.setText(SPUtils.get(mContext, SPUtils.KEY_CLOUD_USERPSW, "666666").toString());
         } else {
@@ -90,7 +90,7 @@ public class SettingDialog extends Dialog implements RadioGroup.OnCheckedChangeL
         switch (checkedId) {
             case R.id.use_cloud_use:
                 mCtrlIP.setText(SPUtils.get(mContext, SPUtils.KEY_CLOUD_IP, "101.132.89.177").toString());
-                mCtrlPort.setText(SPUtils.get(mContext, SPUtils.KEY_CLOUD_PORT, "15004").toString());
+                mCtrlPort.setText(SPUtils.get(mContext, SPUtils.KEY_CLOUD_PORT, "15005").toString());
                 mCtrlUserName.setText(SPUtils.get(mContext, SPUtils.KEY_CLOUD_USERNAME, "user_register").toString());
                 mCtrlUserPsw.setText(SPUtils.get(mContext, SPUtils.KEY_CLOUD_USERPSW, "666666").toString());
                 break;

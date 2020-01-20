@@ -29,6 +29,10 @@ public class FaceEngine {
         return AliFaceEngineJNI.supportCloud();
     }
 
+    public static int getGPUCount() {
+        return AliFaceEngineJNI.getGPUCount();
+    }
+
     public static void setCloudAddr(String ip, int port) {
         AliFaceEngineJNI.setCloudAddr(ip, port);
     }

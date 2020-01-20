@@ -9,6 +9,8 @@ public class ToolsJNI {
 
     public static native void drawFaceRect(Image image, Face face, int color);
 
+    public static native int testPerformance();
+
     static {
         System.loadLibrary("AliFaceEngineJNI");
     }

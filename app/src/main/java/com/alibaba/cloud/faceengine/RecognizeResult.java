@@ -10,6 +10,7 @@ public class RecognizeResult {
     public String personName;
     public String personTag;
     public float similarity;
+    public String featureId;
     public String feature;
     public Face face;
 
