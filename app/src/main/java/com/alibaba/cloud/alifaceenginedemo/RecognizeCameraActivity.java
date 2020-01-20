@@ -348,7 +348,7 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
         if (faces != null) {
             beginCost = System.currentTimeMillis();
             if (mFaceAttributeAnalyze != null) {
-                mFaceAttributeAnalyze.analyze(image, faces);
+                //mFaceAttributeAnalyze.analyze(image, faces);
             }
             mAttributeCost = System.currentTimeMillis() - beginCost;
             Log.d(TAG, "onPreviewFrame face attribute cost : " + mAttributeCost);
@@ -371,27 +371,16 @@ public class RecognizeCameraActivity extends Activity implements SurfaceHolder.C
 
         //在监听中保存result全局变量 跟face[]中的trackId进行比对
         if (faces != null && faces.length > 0) {
-            List<Face> faceList = new ArrayList<Face>();
-            for (int i = 0; i < faces.length; i++) {
-                if ((mFaceAttributeFlag & FaceAttributeAnalyze.LIVENESS) == 0
-                        || faces[i].attribute.liveness.score >= 70) {
-                    faceList.add(faces[i]);
-                }
+            beginCost = System.currentTimeMillis();
+            if (mFaceRecognize != null) {
+                mRecognizeResults = mFaceRecognize.recognizePicture(image, faces);
             }
+            mRecognizeCost = System.currentTimeMillis() - beginCost;
+            Log.d(TAG, "recognizePicture cost : " + mRecognizeCost);
 
-            if (faceList.size() > 0) {
-                beginCost = System.currentTimeMillis();
-                if (mFaceRecognize != null) {
-                    Face[] faces1 = new Face[faceList.size()];
-                    mRecognizeResults = mFaceRecognize.recognizePicture(image, faceList.toArray(faces1));
-                }
-                mRecognizeCost = System.currentTimeMillis() - beginCost;
-                Log.d(TAG, "recognizePicture cost : " + mRecognizeCost);
-
-                if (mRecognizeResults != null) {
-                    for (int i = 0; i < mRecognizeResults.length; i++) {
-                        Log.d(TAG, "onRecognized results[" + i + "] = " + mRecognizeResults[i]);
-                    }
+            if (mRecognizeResults != null) {
+                for (int i = 0; i < mRecognizeResults.length; i++) {
+                    Log.d(TAG, "onRecognized results[" + i + "] = " + mRecognizeResults[i]);
                 }
             }
         }
