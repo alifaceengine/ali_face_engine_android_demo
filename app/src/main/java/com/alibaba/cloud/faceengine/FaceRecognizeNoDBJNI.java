@@ -29,6 +29,8 @@ class FaceRecognizeNoDBJNI {
 
     public static native RecognizeResult[] recognizeFeature2(long context, String feature, int topN);
 
+    public static native RecognizeResult recognizeFeatureOfPerson(long context, String personId, String feature);
+
     static {
         System.loadLibrary("AliFaceEngineJNI");
     }

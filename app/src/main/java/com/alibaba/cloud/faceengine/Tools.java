@@ -5,8 +5,8 @@ package com.alibaba.cloud.faceengine;
  */
 
 public class Tools {
-    public static float compareFeatures(String feature1, String feature2) {
-        return ToolsJNI.compareFeatures(feature1, feature2);
+    public static float compareFeatures(String feature1, String feature2, float thre) {
+        return ToolsJNI.compareFeatures(feature1, feature2, thre);
     }
 
     public static void drawFaceRect(Image image, Face face, int color) {

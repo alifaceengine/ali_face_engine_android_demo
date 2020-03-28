@@ -46,13 +46,6 @@ public class FaceVerify {
         if (image == null || image.data == null) {
             return Error.FAILED;
         }
-
-        if (Codec.isJpeg(image)) {
-            image.data = Codec.jpegToBmp(image.data);
-            if (image.data == null) {
-                return Error.FAILED;
-            }
-        }
         return FaceVerifyJNI.registerFace(mContext, image, face);
     }
 
@@ -64,21 +57,6 @@ public class FaceVerify {
         if (image1 == null || image1.data == null || image2 == null || image2.data == null) {
             return null;
         }
-
-        if (Codec.isJpeg(image1)) {
-            image1.data = Codec.jpegToBmp(image1.data);
-            if (image1.data == null) {
-                return null;
-            }
-        }
-
-        if (Codec.isJpeg(image2)) {
-            image2.data = Codec.jpegToBmp(image2.data);
-            if (image2.data == null) {
-                return null;
-            }
-        }
-
         return FaceVerifyJNI.verifyPicture(mContext, image1, image1Face, image2, image2Faces);
     }
 

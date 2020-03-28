@@ -69,4 +69,7 @@ public class FaceRecognizeNoDB {
         return FaceRecognizeNoDBJNI.recognizeFeature2(mContext, feature, topN);
     }
 
+    public RecognizeResult recognizeFeatureOfPerson(String personId, String feature) {
+        return FaceRecognizeNoDBJNI.recognizeFeatureOfPerson(mContext, personId, feature);
+    }
 }

@@ -23,14 +23,19 @@ public class FeatureExtract {
         if (image == null || image.data == null) {
             return null;
         }
-
-        if (Codec.isJpeg(image)) {
-            image.data = Codec.jpegToBmp(image.data);
-            if (image.data == null) {
-                return null;
-            }
-        }
         return FeatureExtractJNI.extractFeature(mContext, image, face);
+    }
+
+    public String extractFeature(Image image, float fp0_x, float fp0_y,
+                                 float fp1_x, float fp1_y,
+                                 float fp2_x, float fp2_y,
+                                 float fp3_x, float fp3_y,
+                                 float fp4_x, float fp4_y) {
+        if (image == null || image.data == null) {
+            return null;
+        }
+        return FeatureExtractJNI.extractFeature2(mContext, image,
+                fp0_x, fp0_y, fp1_x, fp1_y, fp2_x, fp2_y, fp3_x, fp3_y, fp4_x, fp4_y);
     }
 
     protected long mContext;
