@@ -1,11 +1,5 @@
 package com.alibaba.cloud.faceengine;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-
 /**
  * Created by junyuan.hjy on 2018/9/3.
  */

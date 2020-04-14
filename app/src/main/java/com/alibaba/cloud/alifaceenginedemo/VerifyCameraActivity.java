@@ -259,10 +259,10 @@ public class VerifyCameraActivity extends Activity implements SurfaceHolder.Call
             if (faceList.size() > 0) {
                 beginCost = System.currentTimeMillis();
                 Face[] faces1 = new Face[faceList.size()];
-                mFaceVerify.verifyVideo(image, faceList.toArray(faces1));
+                int error = mFaceVerify.verifyVideo(image, faceList.toArray(faces1));
 
                 mVerifyCost = System.currentTimeMillis() - beginCost;
-                Log.d(TAG, "verifyVideo cost : " + mVerifyCost);
+                Log.d(TAG, "verifyVideo error(" + error + ") cost : " + mVerifyCost);
 
                 if (mVerifyResults != null) {
                     for (int i = 0; i < mVerifyResults.length; i++) {
